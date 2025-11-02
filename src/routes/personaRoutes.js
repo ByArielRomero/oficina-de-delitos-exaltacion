@@ -1,13 +1,10 @@
-/*Rutas (endpoints) y qué controlador responde*/
+// src/routes/personaRoutes.js
+import express from "express";
+import { mostrarFormularioPersona, crearPersona } from "../controllers/personaController.js";
 
+const router = express.Router();
 
-/*
-EJEMPLO:
+router.get("/agregar-persona", mostrarFormularioPersona);
+router.post("/agregar-persona", crearPersona);
 
-// GET /personas → mostrar todas
-router.get('/personas', personaController.mostrarPersonas);
-
-// POST /personas → agregar nueva
-router.post('/personas', personaController.agregarPersona);
-
-*/
+export default router;
