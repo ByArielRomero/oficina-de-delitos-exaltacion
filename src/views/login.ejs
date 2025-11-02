@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Oficina de Víctimas de Delitos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet" type="text/css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="login-page">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="logo-container">
+          <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="30" cy="30" r="28" fill="#0A2647" stroke="#fff" stroke-width="2"/>
+            <path d="M30 15L35 25H25L30 15Z" fill="#fff"/>
+            <rect x="20" y="27" width="20" height="18" rx="2" fill="#fff"/>
+            <circle cx="30" cy="36" r="2" fill="#0A2647"/>
+          </svg>
+        </div>
+        <h1>Oficina de Víctimas de Delitos</h1>
+        <p>Municipalidad de Exaltación de la Cruz</p>
+      </div>
+
+      <form id="formLogin" class="login-form" action="/login" method="POST">
+        <div class="mb-3">
+          <label for="username" class="form-label">Usuario</label>
+          <input type="text" name="name" class="form-control" id="username" placeholder="Ingrese su usuario" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="password" class="form-label">Contraseña</label>
+          <input type="password" name="password" class="form-control" id="password" placeholder="Ingrese su contraseña" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+
+        <div class="alert alert-info mt-3" role="alert">
+          <small><strong>Demo:</strong> admin/admin123 o operador/oper123</small>
+        </div>
+      </form>
+    </div>
+  </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+ <<% if (alert) { %>
+  <% if (alert === "empty") { %>
+    <script>Swal.fire("Campos vacíos", "Por favor completa todos los campos.", "warning");</script>
+  <% } else if (alert === "notfound") { %>
+    <script>Swal.fire("Usuario no encontrado", "Verifica el nombre de usuario.", "error");</script>
+  <% } else if (alert === "invalid") { %>
+    <script>Swal.fire("Contraseña incorrecta", "Inténtalo de nuevo.", "error");</script>
+  <% } else if (alert === "success") { %>
+    <script>
+      Swal.fire({
+        title: "Bienvenido",
+        text: "Inicio de sesión exitoso.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false
+      }).then(() => { window.location.href = "/dashboard"; });
+    </script>
+  <% } else if (alert === "error") { %>
+    <script>Swal.fire("Error", "Ocurrió un problema en el login.", "error");</script>
+  <% } else if (alert === "expired") { %>
+    <script>Swal.fire("Sesión expirada", "Tu sesión ha caducado. Por favor, inicia sesión de nuevo.", "warning");</script>
+  <% } %>
+<% } %>
+
+<% if (alert === "logout") { %>
+<script>
+Swal.fire({
+  title: "Sesión cerrada",
+  text: "Cerraste sesión correctamente.",
+  icon: "info",
+  timer: 2000,
+  showConfirmButton: false
+});
+</script>
+<% } %>
+
+
+</body>
+</html>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agregar Persona - OVD</title>
+
+    <!-- Bootstrap y estilos -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">
+          <i class="bi bi-shield-check"></i> OVD - Exaltación de la Cruz
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/dashboard"
+                ><i class="bi bi-house-door"></i> Dashboard</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="/agregar-persona"
+                ><i class="bi bi-person-plus"></i> Agregar Persona</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/agregar-caso"
+                ><i class="bi bi-file-earmark-plus"></i> Agregar Caso</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/lista-casos"
+                ><i class="bi bi-list-ul"></i> Lista de Casos</a
+              >
+            </li>
+          </ul>
+
+          <div class="dropdown me-3">
+            <button
+              class="btn btn-outline-light dropdown-toggle"
+              type="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i class="bi bi-person-circle"></i>
+              <span id="currentUser">Usuario</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <a class="dropdown-item" href="/register"
+                  ><i class="bi bi-gear"></i> Configuración</a
+                >
+              </li>
+              <li><hr class="dropdown-divider" /></li>
+              <li>
+                <button class="dropdown-item text-danger" onclick="logout()">
+                  <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- CONTENIDO -->
+    <div class="container py-4">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="mb-0">
+                <i class="bi bi-person-plus"></i> Agregar Nueva Persona
+              </h4>
+            </div>
+
+            <div class="card-body">
+              <form id="formPersona" action="/agregar-persona" method="POST">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="nombre" class="form-label"
+                      >Nombre <span class="text-danger">*</span></label
+                    >
+                    <input
+                      type="text"
+                      name="nombre"
+                      class="form-control"
+                      id="nombre"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="apellido" class="form-label"
+                      >Apellido <span class="text-danger">*</span></label
+                    >
+                    <input
+                      type="text"
+                      name="apellido"
+                      class="form-control"
+                      id="apellido"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="dni" class="form-label"
+                      >DNI <span class="text-danger">*</span></label
+                    >
+                    <input
+                      type="text"
+                      name="dni"
+                      class="form-control"
+                      id="dni"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="telefono" class="form-label"
+                      >Teléfono <span class="text-danger">*</span></label
+                    >
+                    <input
+                      type="tel"
+                      name="telefono"
+                      class="form-control"
+                      id="telefono"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="direccion" class="form-label"
+                    >Dirección <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    name="direccion"
+                    class="form-control"
+                    id="direccion"
+                    required
+                  />
+                </div>
+
+                <!-- SELECT ZONA -->
+                <div class="mb-3">
+                  <label for="zona" class="form-label"
+                    >Zona <span class="text-danger">*</span></label
+                  >
+                  <div class="input-group">
+                    <select class="form-select" id="zona" name="zona" required>
+                      <option value="">Seleccione una zona</option>
+                      <% zonas.forEach(z => { %>
+                      <option value="<%= z.id_zona %>">
+                        <%= z.nombre_zona %> <% if (z.nombre_barrio) { %> - <%=
+                        z.nombre_barrio %> <% } %>
+                      </option>
+                      <% }) %>
+                    </select>
+                    <button
+                      class="btn btn-outline-secondary"
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalAgregarZona"
+                    >
+                      <i class="bi bi-plus-circle"></i> Agregar Zona
+                    </button>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="email" class="form-label"
+                    >Email <span class="text-muted">(Opcional)</span></label
+                  >
+                  <input
+                    type="email"
+                    name="email"
+                    class="form-control"
+                    id="email"
+                  />
+                </div>
+
+                <div class="d-grid gap-2">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Guardar Persona
+                  </button>
+                  <a href="/dashboard" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                  </a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL AGREGAR ZONA -->
+    <div class="modal fade" id="modalAgregarZona" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Agregar Nueva Zona</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="formZona">
+              <div class="mb-3">
+                <label for="nombreZona" class="form-label"
+                  >Nombre de la Zona</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="nombreZona"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="nombreBarrio" class="form-label"
+                  >Nombre del Barrio (opcional)</label
+                >
+                <input type="text" class="form-control" id="nombreBarrio" />
+              </div>
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-plus-circle"></i> Agregar
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+      // FORMULARIO DE PERSONA
+      const formPersona = document.getElementById("formPersona");
+
+      formPersona.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const data = Object.fromEntries(new FormData(formPersona).entries());
+
+        const res = await fetch("/agregar-persona", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+          Swal.fire({
+            icon: "success",
+            title: result.message,
+            showConfirmButton: false,
+            timer: 1500,
+          }).then(() => {
+            window.location.href = "/agregar-caso";
+          });
+        } else {
+          Swal.fire("Error", result.message, "error");
+        }
+      });
+
+      // FORMULARIO DE ZONA (MODAL)
+      const formZona = document.getElementById("formZona");
+      formZona.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const nombreZona = document.getElementById("nombreZona").value.trim();
+        const nombreBarrio = document
+          .getElementById("nombreBarrio")
+          .value.trim();
+
+        const res = await fetch("/zonas/agregar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombreZona, nombreBarrio }),
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+          const select = document.getElementById("zona");
+          const option = document.createElement("option");
+          option.value = result.id;
+          option.textContent = `${result.nombreZona}${
+            result.nombreBarrio ? " - " + result.nombreBarrio : ""
+          }`;
+          select.appendChild(option);
+          select.value = result.id;
+
+          document.getElementById("nombreZona").value = "";
+          document.getElementById("nombreBarrio").value = "";
+
+          bootstrap.Modal.getInstance(
+            document.getElementById("modalAgregarZona")
+          ).hide();
+          Swal.fire("Zona agregada", "Se agregó correctamente", "success");
+        } else {
+          Swal.fire("Error", result.message, "error");
+        }
+      });
+    </script>
+
+        <script>
+async function logout() {
+  try {
+    const response = await fetch("/logout", {
+      method: "POST",
+      credentials: "include"
+    });
+    if (response.ok) {
+      // Redirige al login si se cerró correctamente
+      window.location.href = "/login?alert=logout";
+    } else {
+      Swal.fire("Error", "No se pudo cerrar la sesión", "error");
+    }
+  } catch (err) {
+    console.error(err);
+    Swal.fire("Error", "Hubo un problema al cerrar la sesión", "error");
+  }
+}
+</script>
+  </body>
+</html>
