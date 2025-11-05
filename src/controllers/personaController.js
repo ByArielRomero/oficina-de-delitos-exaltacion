@@ -146,3 +146,72 @@ export const actualizarCaso = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// ← NUEVO: Listar personas (con búsqueda opcional)
+export const listarPersonas = async (req, res) => {
+  try {
+    const { search = '' } = req.query; // Búsqueda por query param
+    let query = `
+      SELECT id_persona AS id, nombre, apellido, dni, telefono, direccion, email, genero, z.id_zona AS zona_id, z.nombre_zona AS zona
+      FROM persona p
+      LEFT JOIN zona z ON p.id_zona = z.id_zona
+      WHERE 1=1
+    `;
+    let params = [];
+    if (search.trim()) {
+      query += ` AND (nombre LIKE ? OR apellido LIKE ? OR dni LIKE ?)`;
+      const searchTerm = `%${search.trim()}%`;
+      params = [searchTerm, searchTerm, searchTerm];
+    }
+    query += ` ORDER BY apellido ASC, nombre ASC`;
+    
+    const [personas] = await pool.query(query, params);
+    res.json({ success: true, personas });
+  } catch (error) {
+    console.error("Error al listar personas:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ← NUEVO: Borrar persona
+export const borrarPersona = async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Verificar si existe (y opcional: si tiene casos asociados, no borrar o manejar)
+    const [existing] = await pool.query("SELECT * FROM persona WHERE id_persona = ?", [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ success: false, message: "Persona no encontrada" });
+    }
+    
+    // Borrar (asumimos que no hay FK restrictivas; si hay casos, considera soft-delete)
+    await pool.query("DELETE FROM persona WHERE id_persona = ?", [id]);
+    res.json({ success: true, message: "Persona borrada correctamente" });
+  } catch (error) {
+    console.error("Error al borrar persona:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ← NUEVO: Actualizar persona
+export const actualizarPersona = async (req, res) => {
+  const { id } = req.params;
+  const { nombre, apellido, dni, telefono, direccion, zona, email, genero } = req.body;
+  try {
+    // Verificar DNI único (excluyendo la persona actual)
+    const [existingDni] = await pool.query("SELECT * FROM persona WHERE dni = ? AND id_persona != ?", [dni, id]);
+    if (existingDni.length > 0) {
+      return res.status(400).json({ success: false, message: "Ya existe otra persona con ese DNI" });
+    }
+
+    await pool.query(`
+      UPDATE persona 
+      SET nombre = ?, apellido = ?, dni = ?, telefono = ?, direccion = ?, id_zona = ?, email = ?, genero = ?
+      WHERE id_persona = ?
+    `, [nombre, apellido, dni, telefono, direccion, Number(zona), email, genero, id]);
+
+    res.json({ success: true, message: "Persona actualizada correctamente" });
+  } catch (error) {
+    console.error("Error al actualizar persona:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

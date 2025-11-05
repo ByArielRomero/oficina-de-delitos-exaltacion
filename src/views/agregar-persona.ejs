@@ -46,7 +46,7 @@
               >
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/agregar-caso"
+              <a class="nav-link" href="/agregar-casos"
                 ><i class="bi bi-file-earmark-plus"></i> Agregar Caso</a
               >
             </li>
@@ -85,93 +85,93 @@
       </div>
     </nav>
 
-    <!-- CONTENIDO -->
-    <div class="container py-4">
-      <div class="row justify-content-center">
-        <div class="col-lg-8">
-          <div class="card">
-            <div class="card-header">
-              <h4 class="mb-0">
-                <i class="bi bi-person-plus"></i> Agregar Nueva Persona
-              </h4>
-            </div>
-
-            <div class="card-body">
-              <form id="formPersona" action="/agregar-persona" method="POST">
-                <div class="row">
-                  <div class="col-md-6 mb-3">
-                    <label for="nombre" class="form-label"
-                      >Nombre <span class="text-danger">*</span></label
-                    >
-                    <input
-                      type="text"
-                      name="nombre"
-                      class="form-control"
-                      id="nombre"
-                      required
-                    />
-                  </div>
-                  <div class="col-md-6 mb-3">
-                    <label for="apellido" class="form-label"
-                      >Apellido <span class="text-danger">*</span></label
-                    >
-                    <input
-                      type="text"
-                      name="apellido"
-                      class="form-control"
-                      id="apellido"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div class="row">
-                  <div class="col-md-6 mb-3">
-                    <label for="dni" class="form-label"
-                      >DNI <span class="text-danger">*</span></label
-                    >
-                    <input
-                      type="text"
-                      name="dni"
-                      class="form-control"
-                      id="dni"
-                      required
-                    />
-                  </div>
-                  <div class="col-md-6 mb-3">
-                    <label for="telefono" class="form-label"
-                      >Teléfono <span class="text-danger">*</span></label
-                    >
-                    <input
-                      type="tel"
-                      name="telefono"
-                      class="form-control"
-                      id="telefono"
-                      required
-                    />
-                  </div>
-                </div>
-
+   <!-- CONTENIDO -->
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+              <i class="bi bi-person-plus"></i> Agregar Nueva Persona
+            </h4>
+            <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#modalListaPersonas">
+              <i class="bi bi-list-ul"></i> Ver/Gestionar Personas
+            </button>
+          </div>
+          <div class="card-body">
+            <form id="formPersona" action="/agregar-persona" method="POST">
               <div class="row">
                 <div class="col-md-6 mb-3">
-                 <label for="direccion" class="form-label">Dirección <span class="text-danger">*</span></label>
-                 <input
-                  type="text"
-                  name="direccion"
-                  class="form-control"
-                  id="direccion"
-                  required
-                />
+                  <label for="nombre" class="form-label"
+                    >Nombre <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    name="nombre"
+                    class="form-control"
+                    id="nombre"
+                    required
+                  />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="apellido" class="form-label"
+                    >Apellido <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    name="apellido"
+                    class="form-control"
+                    id="apellido"
+                    required
+                  />
+                </div>
               </div>
-              <div class="col-md-6 mb-3">
-                <label for="genero" class="form-label">Género <span class="text-danger">*</span></label>
-                <select class="form-select" id="genero" name="genero" required>
-                 <option value="">Seleccione un género</option>
-                 <option value="Masculino">Masculino</option>
-                 <option value="Femenino">Femenino</option>
-                </select>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="dni" class="form-label"
+                    >DNI <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    name="dni"
+                    class="form-control"
+                    id="dni"
+                    required
+                  />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="telefono" class="form-label"
+                    >Teléfono <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="tel"
+                    name="telefono"
+                    class="form-control"
+                    id="telefono"
+                    required
+                  />
+                </div>
               </div>
-            </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="direccion" class="form-label">Dirección <span class="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    name="direccion"
+                    class="form-control"
+                    id="direccion"
+                    required
+                  />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="genero" class="form-label">Género <span class="text-danger">*</span></label>
+                  <select class="form-select" id="genero" name="genero" required>
+                    <option value="">Seleccione un género</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Femenino">Femenino</option>
+                  </select>
+                </div>
+              </div>
 
                 <!-- SELECT ZONA -->
                 <div class="mb-3">
@@ -259,6 +259,102 @@
       </div>
     </div>
 
+    <!-- ← NUEVO: Modal para lista de personas con búsqueda, tabla y formulario de edición -->
+     
+  <div class="modal fade" id="modalListaPersonas" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-people"></i> Gestionar Personas
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <input type="text" class="form-control" id="searchPersonas" placeholder="Buscar por nombre, apellido o DNI..." />
+          </div>
+          <div id="listaPersonas" class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Apellido</th>
+                  <th>DNI</th>
+                  <th>Teléfono</th>
+                  <th>Zona</th>
+                  <th>Email</th>
+                  <th>Género</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyPersonas">
+                <!-- Se llena dinámicamente con JS -->
+              </tbody>
+            </table>
+          </div>
+          <div id="formEdicionPersona" class="mt-4" style="display: none;">
+            <h6>Editar Persona</h6>
+            <form id="editFormPersona">
+              <input type="hidden" id="editIdPersona" name="id" />
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Nombre</label>
+                  <input type="text" name="nombre" class="form-control" required />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Apellido</label>
+                  <input type="text" name="apellido" class="form-control" required />
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">DNI</label>
+                  <input type="text" name="dni" class="form-control" required />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Teléfono</label>
+                  <input type="tel" name="telefono" class="form-control" required />
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Dirección</label>
+                  <input type="text" name="direccion" class="form-control" required />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Género</label>
+                  <select class="form-select" name="genero" required>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Femenino">Femenino</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Zona</label>
+                  <select class="form-select" name="zona" required>
+                    <% zonas.forEach(z => { %>
+                      <option value="<%= z.id_zona %>"><%= z.nombre_zona %></option>
+                    <% }); %>
+                    <!-- Se poblará con JS usando las zonas del template -->
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Email</label>
+                  <input type="email" name="email" class="form-control" />
+                </div>
+              </div>
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Actualizar</button>
+                <button type="button" class="btn btn-secondary" onclick="cancelarEdicion()">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
     <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -288,7 +384,7 @@
             showConfirmButton: false,
             timer: 1500,
           }).then(() => {
-            window.location.href = "/agregar-caso";
+            window.location.href = "/agregar-casos";
           });
         } else {
           Swal.fire("Error", result.message, "error");
@@ -328,6 +424,145 @@
           Swal.fire("Error", result.message, "error");
         }
       });
+
+      // NUEVO: Gestión de personas 
+    let todasLasPersonas = [];
+    let modalPersonas = null;
+    let editingId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      modalPersonas = new bootstrap.Modal(document.getElementById('modalListaPersonas'));
+      
+      // Cargar lista al abrir modal
+      document.getElementById('modalListaPersonas').addEventListener('show.bs.modal', cargarPersonas);
+      
+      // Event listener para búsqueda
+      document.getElementById('searchPersonas').addEventListener('input', filtrarPersonas);
+      
+      // Form de edición
+      document.getElementById('editFormPersona').addEventListener('submit', editarPersonaSubmit);
+      
+    });
+
+    async function cargarPersonas() {
+      try {
+        const res = await fetch('/personas');
+        const { personas } = await res.json();
+        todasLasPersonas = personas;
+        renderizarPersonas(personas);
+      } catch (err) {
+        Swal.fire('Error', 'No se pudieron cargar las personas', 'error');
+      }
+    }
+
+    function renderizarPersonas(personas) {
+      const tbody = document.getElementById('tbodyPersonas');
+      tbody.innerHTML = '';
+      personas.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${p.nombre}</td>
+          <td>${p.apellido}</td>
+          <td>${p.dni}</td>
+          <td>${p.telefono}</td>
+          <td>${p.zona || 'Sin zona'}</td>
+          <td>${p.email || ''}</td>
+          <td>${p.genero}</td>
+          <td>
+            <button class="btn btn-sm btn-warning" onclick="editarPersona(${p.id})">
+              <i class="bi bi-pencil"></i> Editar
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="borrarPersona(${p.id})">
+              <i class="bi bi-trash"></i> Borrar
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filtrarPersonas() {
+      const termino = document.getElementById('searchPersonas').value.toLowerCase();
+      const filtradas = todasLasPersonas.filter(p =>
+        p.nombre.toLowerCase().includes(termino) ||
+        p.apellido.toLowerCase().includes(termino) ||
+        p.dni.includes(termino)
+      );
+      renderizarPersonas(filtradas);
+    }
+
+    async function editarPersona(id) {
+      const persona = todasLasPersonas.find(p => p.id === id);
+      if (!persona) return;
+      
+      editingId = id;
+      document.getElementById('editIdPersona').value = id;
+      document.querySelector('#editFormPersona input[name="nombre"]').value = persona.nombre;
+      document.querySelector('#editFormPersona input[name="apellido"]').value = persona.apellido;
+      document.querySelector('#editFormPersona input[name="dni"]').value = persona.dni;
+      document.querySelector('#editFormPersona input[name="telefono"]').value = persona.telefono;
+      document.querySelector('#editFormPersona input[name="direccion"]').value = persona.direccion || '';
+      document.querySelector('#editFormPersona input[name="email"]').value = persona.email || '';
+      document.querySelector('#editFormPersona select[name="genero"]').value = persona.genero;
+      document.querySelector('#editFormPersona select[name="zona"]').value = persona.zona_id || '';
+      
+      document.getElementById('listaPersonas').style.display = 'none';
+      document.getElementById('formEdicionPersona').style.display = 'block';
+    }
+
+    function cancelarEdicion() {
+      document.getElementById('formEdicionPersona').style.display = 'none';
+      document.getElementById('listaPersonas').style.display = 'block';
+      editingId = null;
+    }
+
+    async function editarPersonaSubmit(e) {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      try {
+        const res = await fetch(`/personas/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+          Swal.fire('Éxito', result.message, 'success').then(() => {
+            cancelarEdicion();
+            cargarPersonas(); // Recargar lista
+          });
+        } else {
+          Swal.fire('Error', result.message, 'error');
+        }
+      } catch (err) {
+        Swal.fire('Error', 'No se pudo actualizar', 'error');
+      }
+    }
+
+    async function borrarPersona(id) {
+      const persona = todasLasPersonas.find(p => p.id === id);
+      Swal.fire({
+        title: `¿Borrar ${persona.nombre} ${persona.apellido}?`,
+        text: 'Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const res = await fetch(`/personas/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+              Swal.fire('Borrado', data.message, 'success');
+              cargarPersonas(); // Recargar
+            } else {
+              Swal.fire('Error', data.message, 'error');
+            }
+          } catch (err) {
+            Swal.fire('Error', 'No se pudo borrar', 'error');
+          }
+        }
+      });
+    }
     </script>
 
         <script>
