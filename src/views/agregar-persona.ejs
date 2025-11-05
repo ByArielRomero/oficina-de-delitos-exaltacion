@@ -152,18 +152,26 @@
                   </div>
                 </div>
 
-                <div class="mb-3">
-                  <label for="direccion" class="form-label"
-                    >Dirección <span class="text-danger">*</span></label
-                  >
-                  <input
-                    type="text"
-                    name="direccion"
-                    class="form-control"
-                    id="direccion"
-                    required
-                  />
-                </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                 <label for="direccion" class="form-label">Dirección <span class="text-danger">*</span></label>
+                 <input
+                  type="text"
+                  name="direccion"
+                  class="form-control"
+                  id="direccion"
+                  required
+                />
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="genero" class="form-label">Género <span class="text-danger">*</span></label>
+                <select class="form-select" id="genero" name="genero" required>
+                 <option value="">Seleccione un género</option>
+                 <option value="Masculino">Masculino</option>
+                 <option value="Femenino">Femenino</option>
+                </select>
+              </div>
+            </div>
 
                 <!-- SELECT ZONA -->
                 <div class="mb-3">

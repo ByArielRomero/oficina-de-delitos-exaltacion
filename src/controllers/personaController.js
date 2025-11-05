@@ -14,7 +14,7 @@ export const mostrarFormularioPersona = async (req, res) => {
 
 export const crearPersona = async (req, res) => {
   try {
-    const { nombre, apellido, dni, telefono, direccion, zona, email } = req.body;
+    const { nombre, apellido, dni, telefono, direccion, zona, email, genero } = req.body;
     console.log("Datos recibidos:", req.body);
 
     const idPersona = await agregarPersona({
@@ -25,6 +25,7 @@ export const crearPersona = async (req, res) => {
       direccion,
       zona_id: Number(zona),
       email,
+      genero
     });
 
     res.json({ success: true, message: "Persona agregada correctamente" });
