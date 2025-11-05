@@ -59,7 +59,7 @@ export const createCasoController = async (req, res) => {
       id_persona: Number(id_persona),
       id_usuario: usuarioLogueado,
       id_delito: Number(id_delito),
-      fecha_creada: fecha_creacion,
+      fecha_creado: fecha_creacion,
       fecha_actualizado: fecha_actualizacion
     });
     res.status(201).json({ success: true, data: nuevoCaso, message: "Caso creado exitosamente" });

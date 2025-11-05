@@ -68,7 +68,7 @@ const authController = {
         secure: false, // true si usás HTTPS
         sameSite: "lax",
         path: "/", // 👈 importante: para que sea global y se pueda borrar igual
-        maxAge: 60 * 1000, // 1 minuto para pruebas
+        maxAge: 6000000, // 1 minuto para pruebas
       });
 
       req.session.alert = "success"; // mensaje de inicio de sesión

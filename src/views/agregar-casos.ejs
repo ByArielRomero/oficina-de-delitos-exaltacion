@@ -253,6 +253,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const response = await fetch('/api/casos/data', { credentials: 'include' });
       const result = await response.json();
+      console.log(result)
       if (result.success) {
         // Poblar personas (nombre completo de DB)
         personaSelect.innerHTML = '<option value="">Seleccione una persona</option>';

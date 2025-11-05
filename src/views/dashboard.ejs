@@ -125,25 +125,25 @@
               <div class="row text-center">
                 <div class="col-md-3">
                   <div class="stat-box">
-                    <h3 id="totalCasos">0</h3>
+                    <h3 id="totalCasos"><%= stats.totalCasos %></h3>
                     <p>Total de Casos</p>
                   </div>
                 </div>
                 <div class="col-md-3">
                   <div class="stat-box">
-                    <h3 id="totalPersonas">0</h3>
+                    <h3 id="totalPersonas"><%= stats.totalPersonas %></h3>
                     <p>Personas Registradas</p>
                   </div>
                 </div>
                 <div class="col-md-3">
                   <div class="stat-box">
-                    <h3 id="casosEsteMes">0</h3>
+                    <h3 id="casosEsteMes"><%= stats.casosMes %></h3>
                     <p>Casos Este Mes</p>
                   </div>
                 </div>
                 <div class="col-md-3">
                   <div class="stat-box">
-                    <h3 id="totalZonas">0</h3>
+                    <h3 id="totalZonas"><%= stats.totalZonas %></h3>
                     <p>Zonas Registradas</p>
                   </div>
                 </div>
@@ -174,24 +174,22 @@
     <% } %>
 
     <script>
-async function logout() {
-  try {
-    const response = await fetch("/logout", {
-      method: "POST",
-      credentials: "include"
-    });
-    if (response.ok) {
-      // Redirige al login si se cerró correctamente
-      window.location.href = "/login?alert=logout";
-    } else {
-      Swal.fire("Error", "No se pudo cerrar la sesión", "error");
-    }
-  } catch (err) {
-    console.error(err);
-    Swal.fire("Error", "Hubo un problema al cerrar la sesión", "error");
-  }
-}
-</script>
-
+      async function logout() {
+        try {
+          const response = await fetch("/logout", {
+            method: "POST",
+            credentials: "include",
+          });
+          if (response.ok) {
+            window.location.href = "/login?alert=logout";
+          } else {
+            Swal.fire("Error", "No se pudo cerrar la sesión", "error");
+          }
+        } catch (err) {
+          console.error(err);
+          Swal.fire("Error", "Hubo un problema al cerrar la sesión", "error");
+        }
+      }
+    </script>
   </body>
 </html>
