@@ -243,21 +243,73 @@
                 <label for="nombreZona" class="form-label"
                   >Nombre de la Zona</label
                 >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="nombreZona"
-                  required
-                />
-              </div>              
-              <button type="submit" class="btn btn-primary w-100">
-                <i class="bi bi-plus-circle"></i> Agregar
+                <!-- ← NUEVO: Botón al lado del label para abrir modal de gestión de zonas -->
+              <button type="button" class="btn btn-sm btn-outline-primary flex-shrink-0 ms-auto" data-bs-toggle="modal" data-bs-target="#modalGestionarZonas">
+                <i class="bi bi-list-ul"></i> Gestionar Zonas
               </button>
+              <input
+                type="text"
+                class="form-control"
+                id="nombreZona"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-plus-circle"></i> Agregar
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ← NUEVO: Modal para gestión de zonas (tabla, búsqueda, edición) -->
+  <div class="modal fade" id="modalGestionarZonas" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-geo-alt"></i> Gestionar Zonas
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <!-- ← NUEVO: Barra de búsqueda -->
+          <div class="mb-3">
+            <input type="text" class="form-control" id="searchZonas" placeholder="Buscar por nombre de zona..." />
+          </div>
+          <!-- ← NUEVO: Tabla -->
+          <div id="listaZonas" class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyZonas">
+                <!-- Dinámico -->
+              </tbody>
+            </table>
+          </div>
+          <!-- ← NUEVO: Form edición (oculto) -->
+          <div id="formEdicionZona" class="mt-4" style="display: none;">
+            <h6>Editar Zona</h6>
+            <form id="editFormZona">
+              <input type="hidden" id="editIdZona" name="id" />
+              <div class="mb-3">
+                <label class="form-label">Nombre de la Zona</label>
+                <input type="text" name="nombreZona" class="form-control" required />
+              </div>
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Actualizar</button>
+                <button type="button" class="btn btn-secondary" onclick="cancelarEdicionZona()">Cancelar</button>
+              </div>
             </form>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
     <!-- ← NUEVO: Modal para lista de personas con búsqueda, tabla y formulario de edición -->
      
@@ -424,6 +476,109 @@
           Swal.fire("Error", result.message, "error");
         }
       });
+      // ← NUEVO: Gestión de zonas (carga, filtro, editar, borrar)
+    let todasLasZonas = [];
+    let editingIdZona = null;
+    document.addEventListener('DOMContentLoaded', () => {
+      // ← NUEVO: Event listeners para modal de zonas
+      document.getElementById('modalGestionarZonas').addEventListener('show.bs.modal', cargarZonas);
+      document.getElementById('searchZonas').addEventListener('input', filtrarZonas);
+      document.getElementById('editFormZona').addEventListener('submit', editarZonaSubmit);
+    });
+    async function cargarZonas() {
+      try {
+        const res = await fetch('/zonas');
+        const { zonas } = await res.json();
+        todasLasZonas = zonas;
+        renderizarZonas(zonas);
+      } catch (err) {
+        Swal.fire('Error', 'No se pudieron cargar las zonas', 'error');
+      }
+    }
+    function renderizarZonas(zonas) {
+      const tbody = document.getElementById('tbodyZonas');
+      tbody.innerHTML = '';
+      zonas.forEach(z => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${z.nombre_zona}</td>
+          <td>
+            <button class="btn btn-sm btn-warning" onclick="editarZona(${z.id_zona})">
+              ✏️
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="borrarZona(${z.id_zona})">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    function filtrarZonas() {
+      const termino = document.getElementById('searchZonas').value.toLowerCase();
+      const filtradas = todasLasZonas.filter(z => z.nombre_zona.toLowerCase().includes(termino));
+      renderizarZonas(filtradas);
+    }
+    async function editarZona(id) {
+      const zona = todasLasZonas.find(z => z.id_zona === id);
+      if (!zona) return;
+      editingIdZona = id;
+      document.getElementById('editIdZona').value = id;
+      document.querySelector('#editFormZona input[name="nombreZona"]').value = zona.nombre_zona;
+      document.getElementById('listaZonas').style.display = 'none';
+      document.getElementById('formEdicionZona').style.display = 'block';
+    }
+    function cancelarEdicionZona() {
+      document.getElementById('formEdicionZona').style.display = 'none';
+      document.getElementById('listaZonas').style.display = 'block';
+      editingIdZona = null;
+    }
+    async function editarZonaSubmit(e) {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      try {
+        const res = await fetch(`/zonas/${editingIdZona}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+          Swal.fire('Éxito', result.message, 'success').then(() => {
+            cancelarEdicionZona();
+            cargarZonas();
+          });
+        } else {
+          Swal.fire('Error', result.message, 'error');
+        }
+      } catch (err) {
+        Swal.fire('Error', 'No se pudo actualizar', 'error');
+      }
+    }
+    async function borrarZona(id) {
+      const zona = todasLasZonas.find(z => z.id_zona === id);
+      Swal.fire({
+        title: `¿Borrar "${zona.nombre_zona}"?`,
+        text: 'Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const res = await fetch(`/zonas/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+              Swal.fire('Borrado', data.message, 'success');
+              cargarZonas();
+            } else {
+              Swal.fire('Error', data.message, 'error');
+            }
+          } catch (err) {
+            Swal.fire('Error', 'No se pudo borrar', 'error');
+          }
+        }
+      });
+    }
 
       // NUEVO: Gestión de personas 
     let todasLasPersonas = [];
@@ -470,10 +625,10 @@
           <td>${p.genero}</td>
           <td>
             <button class="btn btn-sm btn-warning" onclick="editarPersona(${p.id})">
-              <i class="bi bi-pencil"></i> Editar
+              ✏️
             </button>
             <button class="btn btn-sm btn-danger" onclick="borrarPersona(${p.id})">
-              <i class="bi bi-trash"></i> Borrar
+              <i class="bi bi-trash"></i> 
             </button>
           </td>
         `;
