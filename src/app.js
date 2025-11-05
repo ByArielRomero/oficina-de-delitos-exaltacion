@@ -3,7 +3,6 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import { cookie } from 'express-validator';
-
 import { env } from 'process';
 import authRoutes from './routes/auth.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
@@ -31,10 +30,21 @@ app.use(session({
 
 app.set("views", "src/views"); 
 app.set("view engine", "ejs");
-app.use(express.static( "src/public"));
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Servir archivos estáticos correctamente
+app.use(express.static(path.join(__dirname, "./public")));
+
 
 
 // Routers
+app.get('/', (req, res) => {
+  res.redirect('login');
+});
 app.use("/", authRoutes);
 app.use("/", personaRoutes);
 app.use("/", dashboardRoutes);

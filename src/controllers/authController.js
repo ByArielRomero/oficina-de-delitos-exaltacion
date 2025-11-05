@@ -60,7 +60,7 @@ const authController = {
       const token = jwt.sign(
         { id: user.id_usuario, name: user.nombre_usuario },
         process.env.JWT_SECRET,
-        { expiresIn: "1m" } // 1 minuto solo para pruebas
+        { expiresIn: "30m" } // 1 minuto solo para pruebas
       );
 
       res.cookie("jwt", token, {
@@ -68,7 +68,7 @@ const authController = {
         secure: false, // true si usás HTTPS
         sameSite: "lax",
         path: "/", // 👈 importante: para que sea global y se pueda borrar igual
-        maxAge: 6000000, // 1 minuto para pruebas
+        maxAge: 30 * 60 * 1000, 
       });
 
       req.session.alert = "success"; // mensaje de inicio de sesión

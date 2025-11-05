@@ -2,8 +2,12 @@
 import express from "express";
 import { protect } from "../middlewares/authMiddleware.js";
 import pool from "../config/db.js";
+import { getStatsCharts } from "../controllers/dashboardController.js";
 
 const router = express.Router();
+
+
+router.get("/api/dashboard/stats", getStatsCharts);
 
 router.get("/dashboard", protect, async (req, res) => {
   try {
