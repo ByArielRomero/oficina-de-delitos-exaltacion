@@ -1,15 +1,25 @@
 import express from "express";
+import { protect } from "../middlewares/authMiddleware.js";
+import {
+  getData,
+  addDelito,
+  createCasoController,
+  mostrarFormularioCaso
+} from "../controllers/casoController.js";
+
 const router = express.Router();
 
-// GET /agregar-caso
-router.get("/agregar-caso", (req, res) => {
-  res.render("agregar-casos");
-});
+// GET /agregar-caso - Renderiza EJS
+router.get("/agregar-casos", protect, mostrarFormularioCaso);
 
-// Página para listar casos
-router.get("/lista-casos", (req, res) => {
-  res.render("lista-casos"); // Nombre del archivo .ejs
-});
+// API
+router.get("/api/casos/data", protect, getData);
+router.post("/api/casos/delito", protect, addDelito);
+router.post("/api/casos", protect, createCasoController);
 
+// Lista casos (placeholder; ajusta si tienes vista EJS)
+router.get("/lista-casos", protect, (req, res) => {
+  res.render("lista-casos", { alert: req.session?.alert || null });  // Asume lista-casos.ejs
+});
 
 export default router;

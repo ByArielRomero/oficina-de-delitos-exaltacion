@@ -14,7 +14,7 @@ export const listarZonas = async (req, res) => {
 // 🔹 Controlador para agregar una nueva zona (usado por el modal)
 export const agregarZona = async (req, res) => {
   try {
-    const { nombreZona, nombreBarrio } = req.body;
+    const { nombreZona } = req.body;
 
     // Validación simple
     if (!nombreZona || nombreZona.trim() === "") {
@@ -23,8 +23,8 @@ export const agregarZona = async (req, res) => {
 
     // Insertar en la base de datos
     const [result] = await pool.query(
-      "INSERT INTO zona (nombre_zona, nombre_barrio) VALUES (?, ?)",
-      [nombreZona.trim(), nombreBarrio || null]
+      "INSERT INTO zona (nombre_zona) VALUES (?)",
+      [nombreZona.trim()]
     );
 
     // Responder al frontend con los datos del nuevo registro
@@ -32,8 +32,7 @@ export const agregarZona = async (req, res) => {
       success: true,
       message: "Zona agregada correctamente.",
       id: result.insertId,
-      nombreZona,
-      nombreBarrio,
+      nombreZona: nombreZona.trim()
     });
   } catch (error) {
     console.error("Error al agregar zona:", error);
