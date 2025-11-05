@@ -1,4 +1,3 @@
-// src/controllers/personaController.js
 import { agregarPersona } from "../models/personaModel.js";
 import pool from "../config/db.js"; // solo para obtener zonas
 
@@ -11,11 +10,16 @@ export const mostrarFormularioPersona = async (req, res) => {
     res.status(500).send("Error al cargar el formulario");
   }
 };
-
 export const crearPersona = async (req, res) => {
   try {
-    const { nombre, apellido, dni, telefono, direccion, zona, email } = req.body;
-    console.log("Datos recibidos:", req.body);
+    // Primero destructuramos del body
+    const { nombre, apellido, dni, telefono, direccion, zona, email, genero } = req.body;
+
+    // Luego usamos dni
+    const [existing] = await pool.query("SELECT * FROM persona WHERE dni = ?", [dni]);
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, message: "Ya existe una persona con ese DNI" });
+    }
 
     const idPersona = await agregarPersona({
       nombre,
@@ -25,22 +29,120 @@ export const crearPersona = async (req, res) => {
       direccion,
       zona_id: Number(zona),
       email,
+      genero,
     });
 
     res.json({ success: true, message: "Persona agregada correctamente" });
   } catch (error) {
-    console.error("Error completo:", error); // <-- Esto muestra el mensaje exacto
-    res.status(500).json({ success: false, message: error.message }); // <-- Muestra el error en front también
+    console.error("Error completo:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
-
 };
+
 
 export const listarCasos = async (req, res) => {
   try {
-    const [casos] = await pool.query("SELECT * FROM casos");
+    const [casos] = await pool.query(`
+      SELECT 
+        c.id_casos AS id,
+        p.nombre,
+        p.apellido,
+        p.dni,
+        p.telefono,
+        d.tipo_delito AS tipo_caso,
+        z.nombre_zona AS zona,
+        c.fecha_creada
+      FROM casos c
+      JOIN persona p ON c.id_persona = p.id_persona
+      JOIN delito d ON c.id_delito = d.id_delito
+      JOIN zona z ON c.id_zona = z.id_zona
+      ORDER BY c.id_casos DESC
+    `);
+
+    console.log("✅ Casos obtenidos:", casos);
     res.render("lista-casos", { casos });
   } catch (error) {
-    console.error(error);
+    console.error("❌ Error al listar casos:", error);
     res.status(500).send("Error al listar casos");
+  }
+};
+
+export const obtenerCaso = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [casos] = await pool.query(
+      `
+      SELECT 
+        c.id_casos AS id,
+        p.id_persona,
+        p.nombre,
+        p.apellido,
+        p.dni,
+        p.telefono,
+        d.id_delito,
+        d.tipo_delito AS tipo_caso,
+        z.id_zona,
+        z.nombre_zona AS zona,
+        c.observacion,
+        c.fecha_creada,
+        c.fecha_actualizado,
+        c.id_usuario
+      FROM casos c
+      JOIN persona p ON c.id_persona = p.id_persona
+      JOIN delito d ON c.id_delito = d.id_delito
+      JOIN zona z ON c.id_zona = z.id_zona
+      WHERE c.id_casos = ?
+    `,
+      [id]
+    );
+
+    if (casos.length === 0)
+      return res.status(404).json({ message: "Caso no encontrado" });
+
+    // Traer todas las opciones de delitos y zonas
+    const [delitos] = await pool.query(
+      `SELECT id_delito, tipo_delito FROM delito`
+    );
+    const [zonas] = await pool.query(`SELECT id_zona, nombre_zona FROM zona`);
+
+    res.json({ caso: casos[0], delitos, zonas });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Actualizar un caso
+export const actualizarCaso = async (req, res) => {
+  const { id } = req.params;
+  const { nombre, apellido, dni, telefono, tipo_caso, zona, observaciones } =
+    req.body;
+
+  try {
+    // Actualizar datos de persona
+    await pool.query(
+      `
+      UPDATE persona 
+      SET nombre = ?, apellido = ?, dni = ?, telefono = ?
+      WHERE id_persona = (SELECT id_persona FROM casos WHERE id_casos = ?)
+    `,
+      [nombre, apellido, dni, telefono, id]
+    );
+
+    // Actualizar datos del caso
+    await pool.query(
+      `
+      UPDATE casos 
+      SET id_delito = ?, id_zona = ?, observacion = ?, fecha_actualizado = NOW()
+      WHERE id_casos = ?
+    `,
+      [tipo_caso, zona, observaciones, id]
+    );
+
+    res.json({ success: true, message: "Caso actualizado correctamente" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: err.message });
   }
 };

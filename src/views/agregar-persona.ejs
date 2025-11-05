@@ -152,18 +152,26 @@
                   </div>
                 </div>
 
-                <div class="mb-3">
-                  <label for="direccion" class="form-label"
-                    >Dirección <span class="text-danger">*</span></label
-                  >
-                  <input
-                    type="text"
-                    name="direccion"
-                    class="form-control"
-                    id="direccion"
-                    required
-                  />
-                </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                 <label for="direccion" class="form-label">Dirección <span class="text-danger">*</span></label>
+                 <input
+                  type="text"
+                  name="direccion"
+                  class="form-control"
+                  id="direccion"
+                  required
+                />
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="genero" class="form-label">Género <span class="text-danger">*</span></label>
+                <select class="form-select" id="genero" name="genero" required>
+                 <option value="">Seleccione un género</option>
+                 <option value="Masculino">Masculino</option>
+                 <option value="Femenino">Femenino</option>
+                </select>
+              </div>
+            </div>
 
                 <!-- SELECT ZONA -->
                 <div class="mb-3">
@@ -175,8 +183,7 @@
                       <option value="">Seleccione una zona</option>
                       <% zonas.forEach(z => { %>
                       <option value="<%= z.id_zona %>">
-                        <%= z.nombre_zona %> <% if (z.nombre_barrio) { %> - <%=
-                        z.nombre_barrio %> <% } %>
+                        <%= z.nombre_zona %> 
                       </option>
                       <% }) %>
                     </select>
@@ -242,13 +249,7 @@
                   id="nombreZona"
                   required
                 />
-              </div>
-              <div class="mb-3">
-                <label for="nombreBarrio" class="form-label"
-                  >Nombre del Barrio (opcional)</label
-                >
-                <input type="text" class="form-control" id="nombreBarrio" />
-              </div>
+              </div>              
               <button type="submit" class="btn btn-primary w-100">
                 <i class="bi bi-plus-circle"></i> Agregar
               </button>
@@ -274,6 +275,7 @@
         const res = await fetch("/agregar-persona", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: 'include',
           body: JSON.stringify(data),
         });
 
@@ -299,14 +301,11 @@
         e.preventDefault();
 
         const nombreZona = document.getElementById("nombreZona").value.trim();
-        const nombreBarrio = document
-          .getElementById("nombreBarrio")
-          .value.trim();
-
+        
         const res = await fetch("/zonas/agregar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nombreZona, nombreBarrio }),
+          body: JSON.stringify({ nombreZona }),
         });
 
         const result = await res.json();
@@ -315,14 +314,11 @@
           const select = document.getElementById("zona");
           const option = document.createElement("option");
           option.value = result.id;
-          option.textContent = `${result.nombreZona}${
-            result.nombreBarrio ? " - " + result.nombreBarrio : ""
-          }`;
+          option.textContent = nombreZona;
           select.appendChild(option);
           select.value = result.id;
 
           document.getElementById("nombreZona").value = "";
-          document.getElementById("nombreBarrio").value = "";
 
           bootstrap.Modal.getInstance(
             document.getElementById("modalAgregarZona")

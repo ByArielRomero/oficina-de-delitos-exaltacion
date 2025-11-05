@@ -41,7 +41,7 @@
               >
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/agregar-casos"
+              <a class="nav-link" href="/agregar-caso"
                 ><i class="bi bi-file-earmark-plus"></i> Agregar Caso</a
               >
             </li>
@@ -125,25 +125,25 @@
               <div class="row text-center">
                 <div class="col-md-3">
                   <div class="stat-box">
-                    <h3 id="totalCasos">0</h3>
+                    <h3 id="totalCasos"><%= stats.totalCasos %></h3>
                     <p>Total de Casos</p>
                   </div>
                 </div>
                 <div class="col-md-3">
                   <div class="stat-box">
-                    <h3 id="totalPersonas">0</h3>
+                    <h3 id="totalPersonas"><%= stats.totalPersonas %></h3>
                     <p>Personas Registradas</p>
                   </div>
                 </div>
                 <div class="col-md-3">
                   <div class="stat-box">
-                    <h3 id="casosEsteMes">0</h3>
+                    <h3 id="casosEsteMes"><%= stats.casosMes %></h3>
                     <p>Casos Este Mes</p>
                   </div>
                 </div>
                 <div class="col-md-3">
                   <div class="stat-box">
-                    <h3 id="totalZonas">0</h3>
+                    <h3 id="totalZonas"><%= stats.totalZonas %></h3>
                     <p>Zonas Registradas</p>
                   </div>
                 </div>
@@ -174,24 +174,134 @@
     <% } %>
 
     <script>
-async function logout() {
-  try {
-    const response = await fetch("/logout", {
-      method: "POST",
-      credentials: "include"
-    });
-    if (response.ok) {
-      // Redirige al login si se cerró correctamente
-      window.location.href = "/login?alert=logout";
-    } else {
-      Swal.fire("Error", "No se pudo cerrar la sesión", "error");
-    }
-  } catch (err) {
-    console.error(err);
-    Swal.fire("Error", "Hubo un problema al cerrar la sesión", "error");
-  }
-}
-</script>
+      async function logout() {
+        try {
+          const response = await fetch("/logout", {
+            method: "POST",
+            credentials: "include",
+          });
+          if (response.ok) {
+            window.location.href = "/login?alert=logout";
+          } else {
+            Swal.fire("Error", "No se pudo cerrar la sesión", "error");
+          }
+        } catch (err) {
+          console.error(err);
+          Swal.fire("Error", "Hubo un problema al cerrar la sesión", "error");
+        }
+      }
 
+      document.addEventListener("DOMContentLoaded", async () => {
+        const chartDelitosAnioEl = document.getElementById("chartDelitosAnio");
+        const chartDelitosSexoEl = document.getElementById("chartDelitosSexo");
+        const chartTiposDelitosEl =
+          document.getElementById("chartTiposDelitos");
+
+        try {
+          const res = await fetch("/api/dashboard/stats", {
+            credentials: "include",
+          });
+          const result = await res.json();
+
+          if (!result.success)
+            throw new Error("No se pudieron cargar los datos");
+
+          const { delitosAnio, delitosSexo, tiposDelito } = result.data;
+
+          // --- 1. Delitos del Año (Barras) ---
+          const labelsAnio = delitosAnio?.map((d) => d.anio) || [];
+          const dataAnio = delitosAnio?.map((d) => d.total) || [];
+          new Chart(chartDelitosAnioEl.getContext("2d"), {
+            type: "bar",
+            data: {
+              labels: labelsAnio,
+              datasets: [
+                {
+                  label: "Cantidad de Delitos",
+                  data: dataAnio,
+                  backgroundColor: "rgba(54, 162, 235, 0.7)",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+            },
+          });
+
+          // --- 2. Delitos por Sexo (Pie) ---
+          const labelsSexo = delitosSexo?.map((d) => d.genero) || [];
+          const dataSexo = delitosSexo?.map((d) => d.total) || [];
+
+          new Chart(chartDelitosSexoEl.getContext("2d"), {
+            type: "pie",
+            data: {
+              labels: labelsSexo,
+              datasets: [
+                {
+                  data: dataSexo,
+                  backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0"],
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+            },
+          });
+
+          // --- 3. Tipos de Delitos (Doughnut) ---
+          // --- 3. Tipos de Delitos (Doughnut) ---
+          const labelsTipos = tiposDelito?.map((d) => d.tipo_delito) || [];
+          const dataTipos = tiposDelito?.map((d) => d.total) || [];
+
+          // Generar colores dinámicamente
+          const colors = [
+            "#FF6384",
+            "#36A2EB",
+            "#FFCE56",
+            "#4BC0C0",
+            "#9966FF",
+            "#FF9F40",
+            "#C9CBCF",
+            "#8DD17E",
+            "#FF6F61",
+            "#6B5B95",
+            "#F7CAC9",
+            "#92A8D1",
+            "#955251",
+            "#B565A7",
+            "#009B77",
+            "#DD4124",
+            "#45B8AC",
+            "#EFC050",
+            "#5B5EA6",
+            "#9B2335",
+          ];
+
+          new Chart(chartTiposDelitosEl.getContext("2d"), {
+            type: "doughnut",
+            data: {
+              labels: labelsTipos,
+              datasets: [
+                {
+                  data: dataTipos,
+                  backgroundColor: colors,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+            },
+          });
+        } catch (error) {
+          console.error("❌ Error dashboard:", error);
+          alert("No se pudieron cargar los gráficos. Revisá la consola.");
+        }
+      });
+    </script>
   </body>
 </html>
