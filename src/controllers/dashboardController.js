@@ -78,3 +78,5 @@ GROUP BY d.tipo_delito
       .json({ success: false, message: "Error al cargar estadísticas" });
   }
 };
+
+

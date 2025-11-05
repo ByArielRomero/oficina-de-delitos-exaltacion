@@ -43,4 +43,36 @@ router.get("/dashboard", protect, async (req, res) => {
   }
 });
 
+
+// ENDPOINT API para el resumen general
+router.get("/api/dashboard/resumen", protect, async (req, res) => {
+  try {
+    const [[totalCasos]] = await pool.query("SELECT COUNT(*) AS total FROM casos");
+    const [[totalPersonas]] = await pool.query("SELECT COUNT(*) AS total FROM personas");
+    const [[totalZonas]] = await pool.query("SELECT COUNT(*) AS total FROM zona");
+
+    // Casos del mes actual
+    const [[casosEsteMes]] = await pool.query(`
+      SELECT COUNT(*) AS total
+      FROM casos
+      WHERE MONTH(fecha_creada) = MONTH(CURRENT_DATE())
+        AND YEAR(fecha_creada) = YEAR(CURRENT_DATE())
+    `);
+
+    res.json({
+      success: true,
+      data: {
+        totalCasos: totalCasos.total,
+        totalPersonas: totalPersonas.total,
+        totalZonas: totalZonas.total,
+        casosEsteMes: casosEsteMes.total,
+      },
+    });
+  } catch (error) {
+    console.error("Error al obtener resumen:", error);
+    res.json({ success: false, message: "Error al obtener los datos" });
+  }
+});
+
+
 export default router;

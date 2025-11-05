@@ -128,9 +128,14 @@
               <td><%= caso.telefono %></td>
               <td><%= caso.tipo_caso %></td>
               <td><%= caso.zona %></td>
-              <td>
-                <%= new Date(caso.fecha_creada).toLocaleDateString('es-AR') %>
+              < <
+              <td <% if (caso.fecha_creada) { %>
+                data-fecha="<%= caso.fecha_creada.toISOString() %>" <% } %> >
+                <%= caso.fecha_creada ? new
+                Date(caso.fecha_creada).toLocaleString('es-AR', { timeZone:
+                'America/Argentina/Buenos_Aires' }) : '-' %>
               </td>
+
               <td>
                 <button
                   class="btn btn-info btn-sm"
@@ -170,7 +175,27 @@
         </div>
       </div>
     </div>
-
+    <div style="max-width: 100%" class="p-4 d-flex flex-column align-items-end">
+      <div class="my-5" style="width: 500px">
+        <div class="mb-2 w-100">
+          <label for="fechaDesde" class="form-label">Desde:</label>
+          <input type="date" id="fechaDesde" class="form-control" />
+        </div>
+        <div class="mb-2 w-100">
+          <label for="fechaHasta" class="form-label">Hasta:</label>
+          <input type="date" id="fechaHasta" class="form-control" />
+        </div>
+        <div class="d-flex flex-column gap-2 w-100">
+          <button id="btnExportFiltro" class="btn btn-primary">
+            Filtrar Tabla
+          </button>
+          <button id="btnExcel" class="btn btn-success">
+            Exportar a Excel
+          </button>
+          <button id="btnPDF" class="btn btn-danger">Exportar a PDF</button>
+        </div>
+      </div>
+    </div>
     <!-- MODAL EDITAR -->
     <div class="modal fade" id="modalEditar" tabindex="-1">
       <div class="modal-dialog">
@@ -253,7 +278,9 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
       async function logout() {
         try {
@@ -393,6 +420,144 @@
             alert("Error al actualizar caso");
           }
         });
+
+      const searchInput = document.getElementById("searchInput");
+      searchInput.addEventListener("input", () => {
+        const term = searchInput.value.toLowerCase();
+        const rows = document.querySelectorAll("#tablaCasos tr");
+
+        rows.forEach((row) => {
+          const cells = row.querySelectorAll("td");
+          const textoFila = Array.from(cells)
+            .map((cell) => cell.textContent.toLowerCase())
+            .join(" ");
+
+          if (textoFila.includes(term)) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
+        });
+      });
+
+      // Por defecto, fechaHasta = hoy
+      // Filtrar tabla por fechas y búsqueda
+      function filtrarTabla() {
+        const desdeVal = document.getElementById("fechaDesde").value;
+        const hastaVal = document.getElementById("fechaHasta").value;
+        const searchTerm = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+
+        // Convertir fechas
+        const desde = desdeVal ? new Date(desdeVal + "T00:00:00") : null;
+        const hasta = hastaVal ? new Date(hastaVal + "T23:59:59") : new Date();
+
+        if (desde) desde.setHours(0, 0, 0, 0);
+        if (hasta) hasta.setHours(23, 59, 59, 999);
+
+        const rows = document.querySelectorAll("#tablaCasos tr");
+
+        rows.forEach((row) => {
+          const fechaTd = row.querySelector("td:nth-child(8)");
+          if (!fechaTd) return;
+
+          const fechaText = fechaTd.textContent.trim();
+          if (!fechaText || fechaText === "31/12/1969") {
+            row.style.display = "none";
+            return;
+          }
+
+          const fechaIso = fechaTd.dataset.fecha;
+          const fechaUtc = new Date(fechaIso);
+          const fecha = new Date(
+            fechaUtc.toLocaleString("en-US", {
+              timeZone: "America/Argentina/Buenos_Aires",
+            })
+          );
+          fecha.setHours(0, 0, 0, 0); // para comparar solo la fecha
+
+          const cumpleFecha = (!desde || fecha >= desde) && fecha <= hasta;
+
+          // Filtrar por búsqueda
+          const textoFila = Array.from(row.querySelectorAll("td"))
+            .map((cell) => cell.textContent.toLowerCase())
+            .join(" ");
+          const cumpleBusqueda = textoFila.includes(searchTerm);
+
+          row.style.display = cumpleFecha && cumpleBusqueda ? "" : "none";
+        });
+      }
+
+      // Filtrar al presionar el botón
+      document
+        .getElementById("btnExportFiltro")
+        .addEventListener("click", filtrarTabla);
+
+      // Filtrar automáticamente al cambiar fechas
+      document
+        .getElementById("fechaDesde")
+        .addEventListener("change", filtrarTabla);
+      document
+        .getElementById("fechaHasta")
+        .addEventListener("change", filtrarTabla);
+
+      // Filtrar también al escribir en el buscador
+      document
+        .getElementById("searchInput")
+        .addEventListener("input", filtrarTabla);
+
+      // Exportar solo filas visibles
+      function exportTablaExcel() {
+        const table = document.querySelector("table.table");
+        const tempTable = document.createElement("table");
+        tempTable.appendChild(table.querySelector("thead").cloneNode(true));
+
+        const tbody = document.createElement("tbody");
+        Array.from(table.querySelectorAll("tbody tr"))
+          .filter((row) => row.style.display !== "none")
+          .forEach((row) => {
+            const clone = row.cloneNode(true);
+            clone
+              .querySelectorAll("td:last-child")
+              .forEach((td) => td.remove());
+            tbody.appendChild(clone);
+          });
+        tempTable.appendChild(tbody);
+
+        const wb = XLSX.utils.table_to_book(tempTable, { sheet: "Casos" });
+        XLSX.writeFile(wb, "casos.xlsx");
+      }
+
+      function exportTablaPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const table = document.querySelector("table.table");
+        const tempTable = document.createElement("table");
+        tempTable.appendChild(table.querySelector("thead").cloneNode(true));
+
+        const tbody = document.createElement("tbody");
+        Array.from(table.querySelectorAll("tbody tr"))
+          .filter((row) => row.style.display !== "none")
+          .forEach((row) => {
+            const clone = row.cloneNode(true);
+            clone
+              .querySelectorAll("td:last-child")
+              .forEach((td) => td.remove());
+            tbody.appendChild(clone);
+          });
+        tempTable.appendChild(tbody);
+
+        doc.autoTable({ html: tempTable });
+        doc.save("casos.pdf");
+      }
+
+      document
+        .getElementById("btnExcel")
+        .addEventListener("click", exportTablaExcel);
+      document
+        .getElementById("btnPDF")
+        .addEventListener("click", exportTablaPDF);
     </script>
   </body>
 </html>
