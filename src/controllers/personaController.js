@@ -188,7 +188,14 @@ export const borrarPersona = async (req, res) => {
     res.json({ success: true, message: "Persona borrada correctamente" });
   } catch (error) {
     console.error("Error al borrar persona:", error);
-    res.status(500).json({ success: false, message: error.message });
+    if (error.sqlState === '23000' || error.code === 'ER_ROW_IS_REFERENCED_2' || error.code === 1451) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "No se puede borrar, tiene un caso asignado" 
+      });
+    }
+   
+    res.status(500).json({ success: false, message: "Error al borrar la persona." });
   }
 };
 
