@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lista de Casos - OVD</title>
-
     <!-- Bootstrap -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
@@ -16,10 +15,9 @@
     />
     <link rel="stylesheet" href="/css/style.css" />
   </head>
-
   <body>
     <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
       <div class="container-fluid">
         <a class="navbar-brand" href="/dashboard">
           <i class="bi bi-shield-check"></i> OVD - Exaltación de la Cruz
@@ -55,13 +53,11 @@
               </a>
             </li>
           </ul>
-
           <div class="dropdown me-3">
             <button
               class="btn btn-outline-light dropdown-toggle"
               type="button"
               data-bs-toggle="dropdown"
-              aria-expanded="false"
             >
               <i class="bi bi-person-circle"></i>
               <span id="currentUser">Usuario</span>
@@ -86,7 +82,7 @@
 
     <!-- CONTENIDO PRINCIPAL -->
     <div class="container py-4">
-      <div class="row mb-3">
+      <div class="row mb-3 align-items-center">
         <div class="col-md-6">
           <h4>Lista de Casos</h4>
         </div>
@@ -94,11 +90,12 @@
           <input
             type="text"
             id="searchInput"
-            class="form-control"
-            placeholder="Buscar por nombre, DNI o tipo de caso"
+            class="form-control d-inline-block w-auto"
+            placeholder="Buscar..."
           />
         </div>
       </div>
+
       <div class="table-responsive">
         <table class="table table-striped table-hover align-middle">
           <thead class="table-dark">
@@ -111,13 +108,16 @@
               <th>Tipo de Caso</th>
               <th>Zona</th>
               <th>Fecha Creación</th>
+              <th>Estado</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody id="tablaCasos">
-            <% if (casos.length === 0) { %>
+            <% if (!casos || casos.length === 0) { %>
             <tr>
-              <td colspan="9" class="text-center">No hay casos registrados</td>
+              <td colspan="10" class="text-center text-muted">
+                No hay casos registrados
+              </td>
             </tr>
             <% } else { %> <% casos.forEach(caso => { %>
             <tr>
@@ -125,35 +125,85 @@
               <td><%= caso.nombre %></td>
               <td><%= caso.apellido %></td>
               <td><%= caso.dni %></td>
-              <td><%= caso.telefono %></td>
+              <td><%= caso.telefono || '-' %></td>
               <td><%= caso.tipo_caso %></td>
               <td><%= caso.zona %></td>
-              < <
-              <td <% if (caso.fecha_creada) { %>
-                data-fecha="<%= caso.fecha_creada.toISOString() %>" <% } %> >
+
+              <td
+                data-fecha="<%= caso.fecha_creada ? new Date(caso.fecha_creada).toISOString() : '' %>"
+              >
                 <%= caso.fecha_creada ? new
                 Date(caso.fecha_creada).toLocaleString('es-AR', { timeZone:
                 'America/Argentina/Buenos_Aires' }) : '-' %>
               </td>
 
               <td>
+                <% const estado = (caso.estado === 'Pendiente' ? 'Pendiente' :
+                caso.estado) || 'Pendiente'; let badgeClass = 'bg-secondary'; if
+                (estado === 'Pendiente') badgeClass = 'bg-warning text-dark';
+                else if (estado === 'Resuelto') badgeClass = 'bg-success'; else
+                if (estado === 'Cancelado') badgeClass = 'bg-danger'; %>
+                <span class="badge <%= badgeClass %>"><%= estado %></span>
+              </td>
+
+              <td>
                 <button
                   class="btn btn-info btn-sm"
                   onclick="verDetalles('<%= caso.id %>')"
+                  title="Ver detalles"
                 >
-                  👁
+                  <i class="bi bi-eye"></i>
                 </button>
                 <button
                   class="btn btn-warning btn-sm"
                   onclick="editarCaso('<%= caso.id %>')"
+                  title="Editar"
                 >
-                  ✏️
+                  <i class="bi bi-pencil"></i>
                 </button>
               </td>
             </tr>
             <% }) %> <% } %>
           </tbody>
         </table>
+      </div>
+      <!-- PAGINACIÓN -->
+      <div class="d-flex justify-content-center mt-4">
+        <nav aria-label="Paginación de casos">
+          <ul class="pagination" id="paginacion">
+            <!-- Se genera con JS -->
+          </ul>
+        </nav>
+      </div>
+      <!-- Filtros y Exportación -->
+      <div class="d-flex justify-content-end my-4">
+        <div style="width: 400px">
+          <div class="row g-2 mb-2">
+            <div class="col">
+              <label class="form-label">Desde</label>
+              <input
+                type="date"
+                id="fechaDesde"
+                class="form-control form-control-sm"
+              />
+            </div>
+            <div class="col">
+              <label class="form-label">Hasta</label>
+              <input
+                type="date"
+                id="fechaHasta"
+                class="form-control form-control-sm"
+              />
+            </div>
+          </div>
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button id="btnExportFiltro" class="btn btn-outline-primary btn-sm">
+              Filtrar
+            </button>
+            <button id="btnExcel" class="btn btn-success btn-sm">Excel</button>
+            <button id="btnPDF" class="btn btn-danger btn-sm">PDF</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -170,35 +220,15 @@
             ></button>
           </div>
           <div class="modal-body" id="detallesCaso">
-            <!-- Detalles cargados dinámicamente -->
+            <!-- Cargado con JS -->
           </div>
         </div>
       </div>
     </div>
-    <div style="max-width: 100%" class="p-4 d-flex flex-column align-items-end">
-      <div class="my-5" style="width: 500px">
-        <div class="mb-2 w-100">
-          <label for="fechaDesde" class="form-label">Desde:</label>
-          <input type="date" id="fechaDesde" class="form-control" />
-        </div>
-        <div class="mb-2 w-100">
-          <label for="fechaHasta" class="form-label">Hasta:</label>
-          <input type="date" id="fechaHasta" class="form-control" />
-        </div>
-        <div class="d-flex flex-column gap-2 w-100">
-          <button id="btnExportFiltro" class="btn btn-primary">
-            Filtrar Tabla
-          </button>
-          <button id="btnExcel" class="btn btn-success">
-            Exportar a Excel
-          </button>
-          <button id="btnPDF" class="btn btn-danger">Exportar a PDF</button>
-        </div>
-      </div>
-    </div>
+
     <!-- MODAL EDITAR -->
     <div class="modal fade" id="modalEditar" tabindex="-1">
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Editar Caso</h5>
@@ -211,61 +241,68 @@
           <div class="modal-body">
             <form id="formEditarCaso">
               <input type="hidden" id="editCasoId" />
-
-              <div class="mb-3">
-                <label for="editNombre" class="form-label">Nombre</label>
-                <input
-                  type="text"
-                  id="editNombre"
-                  class="form-control"
-                  required
-                />
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Nombre</label>
+                  <input
+                    type="text"
+                    id="editNombre"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Apellido</label>
+                  <input
+                    type="text"
+                    id="editApellido"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">DNI</label>
+                  <input
+                    type="text"
+                    id="editDNI"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Teléfono</label>
+                  <input type="text" id="editTelefono" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Tipo de Caso</label>
+                  <select
+                    id="editTipoCaso"
+                    class="form-select"
+                    required
+                  ></select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Zona</label>
+                  <select id="editZona" class="form-select" required></select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Estado</label>
+                  <select id="editEstado" class="form-select" required>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Resuelto">Resuelto</option>
+                    <option value="Cancelado">Cancelado</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Observaciones</label>
+                  <textarea
+                    id="editObservaciones"
+                    class="form-control"
+                    rows="3"
+                  ></textarea>
+                </div>
               </div>
-
-              <div class="mb-3">
-                <label for="editApellido" class="form-label">Apellido</label>
-                <input
-                  type="text"
-                  id="editApellido"
-                  class="form-control"
-                  required
-                />
-              </div>
-
-              <div class="mb-3">
-                <label for="editDNI" class="form-label">DNI</label>
-                <input type="text" id="editDNI" class="form-control" required />
-              </div>
-
-              <div class="mb-3">
-                <label for="editTelefono" class="form-label">Teléfono</label>
-                <input type="text" id="editTelefono" class="form-control" />
-              </div>
-
-              <div class="mb-3">
-                <label for="editTipoCaso" class="form-label"
-                  >Tipo de Caso</label
-                >
-                <select class="form-select" id="editTipoCaso" required></select>
-              </div>
-
-              <div class="mb-3">
-                <label for="editZona" class="form-label">Zona</label>
-                <select class="form-select" id="editZona" required></select>
-              </div>
-
-              <div class="mb-3">
-                <label for="editObservaciones" class="form-label"
-                  >Observaciones</label
-                >
-                <textarea
-                  class="form-control"
-                  id="editObservaciones"
-                  rows="3"
-                ></textarea>
-              </div>
-
-              <div class="d-grid">
+              <div class="d-grid mt-3">
                 <button type="submit" class="btn btn-primary">
                   <i class="bi bi-save"></i> Guardar Cambios
                 </button>
@@ -276,288 +313,425 @@
       </div>
     </div>
 
-    <!-- Bootstrap JS -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
     <script>
+      // ====================== PAGINACIÓN + FILTROS (TODO JUNTO) ======================
+      const ITEMS_POR_PAGINA = 10;
+      let paginaActual = 1;
+      let filasOriginales = [];
+
+      // Cuando carga la página
+      document.addEventListener("DOMContentLoaded", () => {
+        filasOriginales = Array.from(
+          document.querySelectorAll("#tablaCasos tr")
+        );
+        aplicarFiltrosYPagina();
+        document.getElementById("fechaHasta").valueAsDate = new Date();
+      });
+
+      // FUNCIÓN ÚNICA QUE HACE TODO: filtra + paginación
+      function aplicarFiltrosYPagina() {
+        const search = document
+          .getElementById("searchInput")
+          .value.toLowerCase()
+          .trim();
+        const desde = document.getElementById("fechaDesde").value
+          ? new Date(document.getElementById("fechaDesde").value)
+          : null;
+        const hasta = document.getElementById("fechaHasta").value
+          ? new Date(document.getElementById("fechaHasta").value)
+          : null;
+        if (hasta) hasta.setHours(23, 59, 59, 999);
+
+        let filasVisibles = [];
+
+        filasOriginales.forEach((row) => {
+          const cells = row.querySelectorAll("td");
+          const texto = Array.from(cells)
+            .map((c) => c.textContent.toLowerCase())
+            .join(" ");
+          const fechaCell = cells[7];
+          const fechaIso = fechaCell?.dataset.fecha;
+          const fecha = fechaIso ? new Date(fechaIso) : null;
+
+          const cumpleBusqueda = texto.includes(search);
+          const cumpleFecha =
+            (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
+
+          if (cumpleBusqueda && cumpleFecha) {
+            row.style.display = "";
+            filasVisibles.push(row);
+          } else {
+            row.style.display = "none";
+          }
+        });
+
+        // PAGINACIÓN
+        const totalPaginas = Math.ceil(filasVisibles.length / ITEMS_POR_PAGINA);
+        paginaActual = 1; // siempre vuelve a página 1 al filtrar
+
+        // Ocultar todas
+        filasOriginales.forEach((r) => (r.style.display = "none"));
+        // Mostrar solo las de la página 1
+        filasVisibles
+          .slice(0, ITEMS_POR_PAGINA)
+          .forEach((r) => (r.style.display = ""));
+
+        // Generar botones
+        const paginacion = document.getElementById("paginacion");
+        paginacion.innerHTML = "";
+
+        if (totalPaginas <= 1) return;
+
+        // Anterior
+        paginacion.innerHTML += `<li class="page-item"><a class="page-link" href="#" onclick="cambiarPagina(1)">Anterior</a></li>`;
+
+        // Números
+        for (let i = 1; i <= totalPaginas; i++) {
+          paginacion.innerHTML += `
+      <li class="page-item ${i === 1 ? "active" : ""}">
+        <a class="page-link" href="#" onclick="cambiarPagina(${i})">${i}</a>
+      </li>`;
+        }
+
+        // Siguiente
+        paginacion.innerHTML += `<li class="page-item"><a class="page-link" href="#" onclick="cambiarPagina(2)">Siguiente</a></li>`;
+      }
+
+      // Cambiar página
+      window.cambiarPagina = function (pag) {
+        const search = document
+          .getElementById("searchInput")
+          .value.toLowerCase()
+          .trim();
+        const desde = document.getElementById("fechaDesde").value
+          ? new Date(document.getElementById("fechaDesde").value)
+          : null;
+        const hasta = document.getElementById("fechaHasta").value
+          ? new Date(document.getElementById("fechaHasta").value)
+          : null;
+        if (hasta) hasta.setHours(23, 59, 59, 999);
+
+        let filasVisibles = [];
+
+        filasOriginales.forEach((row) => {
+          const cells = row.querySelectorAll("td");
+          const texto = Array.from(cells)
+            .map((c) => c.textContent.toLowerCase())
+            .join(" ");
+          const fechaCell = cells[7];
+          const fechaIso = fechaCell?.dataset.fecha;
+          const fecha = fechaIso ? new Date(fechaIso) : null;
+
+          const cumpleBusqueda = texto.includes(search);
+          const cumpleFecha =
+            (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
+
+          if (cumpleBusqueda && cumpleFecha) {
+            filasVisibles.push(row);
+          }
+        });
+
+        const inicio = (pag - 1) * ITEMS_POR_PAGINA;
+        const fin = inicio + ITEMS_POR_PAGINA;
+
+        // Ocultar todas
+        filasOriginales.forEach((r) => (r.style.display = "none"));
+        // Mostrar solo las de esta página
+        filasVisibles.slice(inicio, fin).forEach((r) => (r.style.display = ""));
+
+        // Actualizar active
+        document
+          .querySelectorAll("#paginacion .page-item")
+          .forEach((li, index) => {
+            if (
+              index === 0 ||
+              index ===
+                document.querySelectorAll("#paginacion .page-item").length - 1
+            )
+              return;
+            li.classList.toggle("active", index === pag);
+          });
+
+        // Scroll suave
+        document
+          .querySelector(".table-responsive")
+          .scrollIntoView({ behavior: "smooth" });
+      };
+
+      // Eventos de filtros
+      ["searchInput", "fechaDesde", "fechaHasta"].forEach((id) => {
+        document
+          .getElementById(id)
+          .addEventListener("input", aplicarFiltrosYPagina);
+      });
+      document
+        .getElementById("btnExportFiltro")
+        .addEventListener("click", aplicarFiltrosYPagina);
+
+      // ====================== EXPORTAR ======================
+      // ====================== EXPORTAR TODOS LOS CASOS (NO SOLO LOS 10 VISIBLES) ======================
+      function exportar(formato) {
+        // 1. RECALCULAR QUÉ FILAS ESTÁN VISIBLES SEGÚN EL FILTRO ACTUAL
+        const search = document
+          .getElementById("searchInput")
+          .value.toLowerCase()
+          .trim();
+        const desde = document.getElementById("fechaDesde").value
+          ? new Date(document.getElementById("fechaDesde").value)
+          : null;
+        const hasta = document.getElementById("fechaHasta").value
+          ? new Date(document.getElementById("fechaHasta").value)
+          : null;
+        if (hasta) hasta.setHours(23, 59, 59, 999);
+
+        const filasFiltradas = filasOriginales.filter((row) => {
+          const cells = row.querySelectorAll("td");
+          const texto = Array.from(cells)
+            .map((c) => c.textContent.toLowerCase())
+            .join(" ");
+          const fechaCell = cells[7];
+          const fechaIso = fechaCell?.dataset.fecha;
+          const fecha = fechaIso ? new Date(fechaIso) : null;
+
+          const cumpleBusqueda = texto.includes(search);
+          const cumpleFecha =
+            (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
+
+          return cumpleBusqueda && cumpleFecha;
+        });
+
+        if (filasFiltradas.length === 0) {
+          return alert("No hay casos para exportar con el filtro actual");
+        }
+
+        // 2. ARMAR LOS DATOS DE TODAS LAS FILAS FILTRADAS
+        const datos = filasFiltradas.map((row) => {
+          const celdas = row.querySelectorAll("td");
+          return {
+            ID: celdas[0]?.textContent.trim(),
+            Nombre: celdas[1]?.textContent.trim(),
+            Apellido: celdas[2]?.textContent.trim(),
+            DNI: celdas[3]?.textContent.trim(),
+            Teléfono: celdas[4]?.textContent.trim() || "-",
+            "Tipo Caso": celdas[5]?.textContent.trim(),
+            Zona: celdas[6]?.textContent.trim(),
+            Fecha: celdas[7]?.textContent.trim(),
+            Estado:
+              celdas[8]?.querySelector(".badge")?.textContent.trim() ||
+              celdas[8]?.textContent.trim(),
+          };
+        });
+
+        // 3. EXPORTAR
+        if (formato === "excel") {
+          const wb = XLSX.utils.book_new();
+          const ws = XLSX.utils.json_to_sheet(datos);
+          XLSX.utils.book_append_sheet(wb, ws, "Casos");
+          XLSX.writeFile(
+            wb,
+            `casos_OVD_${new Date().toLocaleDateString("es-AR")}.xlsx`
+          );
+        } else {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF("l", "mm", "a4"); // horizontal
+
+          // Título lindo
+          doc.setFontSize(18);
+          doc.setTextColor(0, 101, 189);
+          doc.text(
+            "LISTA COMPLETA DE CASOS - OVD Exaltación de la Cruz",
+            15,
+            20
+          );
+
+          doc.setFontSize(10);
+          doc.setTextColor(100);
+          doc.text(`Total: ${datos.length} casos`, 15, 30);
+          doc.text(`Generado: ${new Date().toLocaleString("es-AR")}`, 15, 37);
+
+          // Tabla con todos los datos
+          doc.autoTable({
+            head: [Object.keys(datos[0])],
+            body: datos.map(Object.values),
+            startY: 45,
+            theme: "grid",
+            styles: { fontSize: 8, cellPadding: 3 },
+            headStyles: {
+              fillColor: [0, 101, 189],
+              textColor: 255,
+              fontStyle: "bold",
+            },
+            columnStyles: {
+              0: { cellWidth: 15 },
+              1: { cellWidth: 28 },
+              2: { cellWidth: 28 },
+              3: { cellWidth: 22 },
+              4: { cellWidth: 28 },
+              5: { cellWidth: 40 },
+              6: { cellWidth: 28 },
+              7: { cellWidth: 35 },
+              8: { cellWidth: 22 },
+            },
+            didDrawPage: (data) => {
+              // Pie de página
+              const pageCount = doc.internal.getNumberOfPages();
+              doc.setFontSize(8);
+              doc.setTextColor(150);
+              doc.text(`Página ${data.pageNumber} de ${pageCount}`, 280, 205, {
+                align: "right",
+              });
+            },
+          });
+
+          doc.save(`casos_OVD_${new Date().toLocaleDateString("es-AR")}.pdf`);
+        }
+
+        // Mensaje final
+        alert(`¡Listo! Se exportaron ${datos.length} casos correctamente`);
+      }
+
+      // Botones (igual que antes)
+      document
+        .getElementById("btnExcel")
+        .addEventListener("click", () => exportar("excel"));
+      document
+        .getElementById("btnPDF")
+        .addEventListener("click", () => exportar("pdf"));
+
+      // ====================== TUS FUNCIONES ORIGINALES ======================
       async function logout() {
         try {
-          const response = await fetch("/logout", {
-            method: "POST",
-            credentials: "include",
-          });
-          if (response.ok) {
-            window.location.href = "/login?alert=logout";
-          } else {
-            alert("No se pudo cerrar la sesión");
-          }
+          await fetch("/logout", { method: "POST", credentials: "include" });
+          window.location.href = "/login?alert=logout";
         } catch (err) {
-          console.error(err);
-          alert("Error al cerrar la sesión");
+          alert("Error al cerrar sesión");
         }
       }
 
       async function verDetalles(casoId) {
         try {
           const res = await fetch(`/api/casos/${casoId}`);
-          if (!res.ok) throw new Error("No se pudo obtener el caso");
-
-          const { caso } = await res.json(); // 🔑 accedemos a "caso" dentro del objeto
-
-          // Construir HTML con la info del caso
+          if (!res.ok) throw new Error("Error");
+          const { caso } = await res.json();
           const html = `
-      <p><strong>ID:</strong> ${caso.id}</p>
-      <p><strong>Nombre:</strong> ${caso.nombre} ${caso.apellido}</p>
-      <p><strong>DNI:</strong> ${caso.dni}</p>
-      <p><strong>Teléfono:</strong> ${caso.telefono}</p>
-      <p><strong>Tipo de Caso:</strong> ${caso.tipo_caso}</p>
-      <p><strong>Zona:</strong> ${caso.zona}</p>
-      <p><strong>Observaciones:</strong> ${caso.observacion || "-"}</p>
-      <p><strong>Fecha Creación:</strong> ${new Date(
-        caso.fecha_creada
-      ).toLocaleString("es-AR")}</p>
-      <p><strong>Última Actualización:</strong> ${new Date(
-        caso.fecha_actualizado
-      ).toLocaleString("es-AR")}</p>
-    `;
-
+      <div class="row">
+        <div class="col-md-6"><strong>ID:</strong> ${caso.id}</div>
+        <div class="col-md-6"><strong>Nombre:</strong> ${caso.nombre} ${
+            caso.apellido
+          }</div>
+        <div class="col-md-6"><strong>DNI:</strong> ${caso.dni}</div>
+        <div class="col-md-6"><strong>Teléfono:</strong> ${
+          caso.telefono || "-"
+        }</div>
+        <div class="col-md-6"><strong>Tipo de Caso:</strong> ${
+          caso.tipo_caso
+        }</div>
+        <div class="col-md-6"><strong>Zona:</strong> ${caso.zona}</div>
+        <div class="col-md-6"><strong>Estado:</strong> <span class="badge ${getBadgeClass(
+          caso.estado
+        )}">${caso.estado}</span></div>
+        <div class="col-md-6"><strong>Fecha:</strong> ${new Date(
+          caso.fecha_creada
+        ).toLocaleString("es-AR")}</div>
+        <div class="col-12"><strong>Observaciones:</strong> ${
+          caso.observacion || '<em class="text-muted">Sin observaciones</em>'
+        }</div>
+      </div>`;
           document.getElementById("detallesCaso").innerHTML = html;
-
-          // Mostrar el modal
           new bootstrap.Modal(document.getElementById("modalDetalles")).show();
         } catch (err) {
-          console.error(err);
-          alert("Error al cargar detalles del caso");
+          alert("Error al cargar detalles");
         }
+      }
+
+      function getBadgeClass(estado) {
+        if (estado === "Pendiente") return "bg-warning text-dark";
+        if (estado === "Resuelto") return "bg-success";
+        if (estado === "Cancelado") return "bg-danger";
+        return "bg-secondary";
       }
 
       async function editarCaso(casoId) {
         try {
           const res = await fetch(`/api/casos/${casoId}`);
-          if (!res.ok) throw new Error("No se pudo obtener el caso");
-
+          if (!res.ok) throw new Error("Error");
           const { caso, delitos, zonas } = await res.json();
 
-          // Rellenar campos de persona
           document.getElementById("editCasoId").value = caso.id;
           document.getElementById("editNombre").value = caso.nombre;
           document.getElementById("editApellido").value = caso.apellido;
           document.getElementById("editDNI").value = caso.dni;
-          document.getElementById("editTelefono").value = caso.telefono;
-
-          // Llenar select de tipo de caso
-          const tipoSelect = document.getElementById("editTipoCaso");
-          tipoSelect.innerHTML = "";
-          delitos.forEach((d) => {
-            const selected = d.id_delito === caso.id_delito ? "selected" : "";
-            tipoSelect.innerHTML += `<option value="${d.id_delito}" ${selected}>${d.tipo_delito}</option>`;
-          });
-
-          // Llenar select de zona
-          const zonaSelect = document.getElementById("editZona");
-          zonaSelect.innerHTML = "";
-          zonas.forEach((z) => {
-            const selected = z.id_zona === caso.id_zona ? "selected" : "";
-            zonaSelect.innerHTML += `<option value="${z.id_zona}" ${selected}>${z.nombre_zona}</option>`;
-          });
-
-          // Observaciones
+          document.getElementById("editTelefono").value = caso.telefono || "";
+          document.getElementById("editEstado").value =
+            caso.estado || "Pendiente";
           document.getElementById("editObservaciones").value =
             caso.observacion || "";
 
-          // Mostrar modal
+          document.getElementById("editTipoCaso").innerHTML = delitos
+            .map(
+              (d) =>
+                `<option value="${d.id_delito}" ${
+                  d.id_delito === caso.id_delito ? "selected" : ""
+                }>${d.tipo_delito}</option>`
+            )
+            .join("");
+
+          document.getElementById("editZona").innerHTML = zonas
+            .map(
+              (z) =>
+                `<option value="${z.id_zona}" ${
+                  z.id_zona === caso.id_zona ? "selected" : ""
+                }>${z.nombre_zona}</option>`
+            )
+            .join("");
+
           new bootstrap.Modal(document.getElementById("modalEditar")).show();
         } catch (err) {
-          console.error(err);
-          alert("Error al cargar el caso para editar");
+          alert("Error al cargar caso");
         }
       }
 
       document
         .getElementById("formEditarCaso")
         .addEventListener("submit", async (e) => {
-          e.preventDefault(); // Evita que recargue la página
-
+          e.preventDefault();
           const id = document.getElementById("editCasoId").value;
-          const nombre = document.getElementById("editNombre").value;
-          const apellido = document.getElementById("editApellido").value;
-          const dni = document.getElementById("editDNI").value;
-          const telefono = document.getElementById("editTelefono").value;
-          const tipo_caso = document.getElementById("editTipoCaso").value;
-          const zona = document.getElementById("editZona").value;
-          const observaciones =
-            document.getElementById("editObservaciones").value;
+          const formData = {
+            nombre: document.getElementById("editNombre").value.trim(),
+            apellido: document.getElementById("editApellido").value.trim(),
+            dni: document.getElementById("editDNI").value.trim(),
+            telefono: document.getElementById("editTelefono").value.trim(),
+            tipo_caso: document.getElementById("editTipoCaso").value,
+            zona: document.getElementById("editZona").value,
+            estado: document.getElementById("editEstado").value,
+            observaciones: document
+              .getElementById("editObservaciones")
+              .value.trim(),
+          };
 
           try {
             const res = await fetch(`/api/casos/${id}`, {
               method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                nombre,
-                apellido,
-                dni,
-                telefono,
-                tipo_caso,
-                zona,
-                observaciones,
-              }),
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(formData),
             });
-
-            const data = await res.json();
-
             if (res.ok) {
-              alert("Caso actualizado correctamente");
-              location.reload(); // recarga la tabla para ver cambios
+              alert("Caso actualizado");
+              location.reload();
             } else {
-              alert("Error al actualizar caso: " + data.message);
+              const data = await res.json();
+              alert("Error: " + data.message);
             }
           } catch (err) {
-            console.error(err);
-            alert("Error al actualizar caso");
+            alert("Error de red");
           }
         });
-
-      const searchInput = document.getElementById("searchInput");
-      searchInput.addEventListener("input", () => {
-        const term = searchInput.value.toLowerCase();
-        const rows = document.querySelectorAll("#tablaCasos tr");
-
-        rows.forEach((row) => {
-          const cells = row.querySelectorAll("td");
-          const textoFila = Array.from(cells)
-            .map((cell) => cell.textContent.toLowerCase())
-            .join(" ");
-
-          if (textoFila.includes(term)) {
-            row.style.display = "";
-          } else {
-            row.style.display = "none";
-          }
-        });
-      });
-
-      // Por defecto, fechaHasta = hoy
-      // Filtrar tabla por fechas y búsqueda
-      function filtrarTabla() {
-        const desdeVal = document.getElementById("fechaDesde").value;
-        const hastaVal = document.getElementById("fechaHasta").value;
-        const searchTerm = document
-          .getElementById("searchInput")
-          .value.toLowerCase();
-
-        // Convertir fechas
-        const desde = desdeVal ? new Date(desdeVal + "T00:00:00") : null;
-        const hasta = hastaVal ? new Date(hastaVal + "T23:59:59") : new Date();
-
-        if (desde) desde.setHours(0, 0, 0, 0);
-        if (hasta) hasta.setHours(23, 59, 59, 999);
-
-        const rows = document.querySelectorAll("#tablaCasos tr");
-
-        rows.forEach((row) => {
-          const fechaTd = row.querySelector("td:nth-child(8)");
-          if (!fechaTd) return;
-
-          const fechaText = fechaTd.textContent.trim();
-          if (!fechaText || fechaText === "31/12/1969") {
-            row.style.display = "none";
-            return;
-          }
-
-          const fechaIso = fechaTd.dataset.fecha;
-          const fechaUtc = new Date(fechaIso);
-          const fecha = new Date(
-            fechaUtc.toLocaleString("en-US", {
-              timeZone: "America/Argentina/Buenos_Aires",
-            })
-          );
-          fecha.setHours(0, 0, 0, 0); // para comparar solo la fecha
-
-          const cumpleFecha = (!desde || fecha >= desde) && fecha <= hasta;
-
-          // Filtrar por búsqueda
-          const textoFila = Array.from(row.querySelectorAll("td"))
-            .map((cell) => cell.textContent.toLowerCase())
-            .join(" ");
-          const cumpleBusqueda = textoFila.includes(searchTerm);
-
-          row.style.display = cumpleFecha && cumpleBusqueda ? "" : "none";
-        });
-      }
-
-      // Filtrar al presionar el botón
-      document
-        .getElementById("btnExportFiltro")
-        .addEventListener("click", filtrarTabla);
-
-      // Filtrar automáticamente al cambiar fechas
-      document
-        .getElementById("fechaDesde")
-        .addEventListener("change", filtrarTabla);
-      document
-        .getElementById("fechaHasta")
-        .addEventListener("change", filtrarTabla);
-
-      // Filtrar también al escribir en el buscador
-      document
-        .getElementById("searchInput")
-        .addEventListener("input", filtrarTabla);
-
-      // Exportar solo filas visibles
-      function exportTablaExcel() {
-        const table = document.querySelector("table.table");
-        const tempTable = document.createElement("table");
-        tempTable.appendChild(table.querySelector("thead").cloneNode(true));
-
-        const tbody = document.createElement("tbody");
-        Array.from(table.querySelectorAll("tbody tr"))
-          .filter((row) => row.style.display !== "none")
-          .forEach((row) => {
-            const clone = row.cloneNode(true);
-            clone
-              .querySelectorAll("td:last-child")
-              .forEach((td) => td.remove());
-            tbody.appendChild(clone);
-          });
-        tempTable.appendChild(tbody);
-
-        const wb = XLSX.utils.table_to_book(tempTable, { sheet: "Casos" });
-        XLSX.writeFile(wb, "casos.xlsx");
-      }
-
-      function exportTablaPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const table = document.querySelector("table.table");
-        const tempTable = document.createElement("table");
-        tempTable.appendChild(table.querySelector("thead").cloneNode(true));
-
-        const tbody = document.createElement("tbody");
-        Array.from(table.querySelectorAll("tbody tr"))
-          .filter((row) => row.style.display !== "none")
-          .forEach((row) => {
-            const clone = row.cloneNode(true);
-            clone
-              .querySelectorAll("td:last-child")
-              .forEach((td) => td.remove());
-            tbody.appendChild(clone);
-          });
-        tempTable.appendChild(tbody);
-
-        doc.autoTable({ html: tempTable });
-        doc.save("casos.pdf");
-      }
-
-      document
-        .getElementById("btnExcel")
-        .addEventListener("click", exportTablaExcel);
-      document
-        .getElementById("btnPDF")
-        .addEventListener("click", exportTablaPDF);
     </script>
   </body>
 </html>

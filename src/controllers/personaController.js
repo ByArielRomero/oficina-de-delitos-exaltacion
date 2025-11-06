@@ -51,7 +51,8 @@ export const listarCasos = async (req, res) => {
         p.telefono,
         d.tipo_delito AS tipo_caso,
         z.nombre_zona AS zona,
-        c.fecha_creada
+        c.fecha_creada,
+        c.estado
       FROM casos c
       JOIN persona p ON c.id_persona = p.id_persona
       JOIN delito d ON c.id_delito = d.id_delito
