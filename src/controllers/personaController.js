@@ -15,6 +15,16 @@ export const crearPersona = async (req, res) => {
     // Primero destructuramos del body
     const { nombre, apellido, dni, telefono, direccion, zona, email, genero } = req.body;
 
+    if (!/^\d{8}$/.test(dni)) {
+      return res.status(400).json({ success: false, message: "DNI: utilizar 8 digitos" });
+    }
+     if (!/^\d{10}$/.test(telefono)) {
+      return res.status(400).json({ success: false, message: "telefono: utilizar 10 digitos" });
+    }
+        if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ success: false, message: "Email inválido: debe contener @ y un dominio (ej: nombre@ gmail.com)"
+  });
+}
     // Luego usamos dni
     const [existing] = await pool.query("SELECT * FROM persona WHERE dni = ?", [dni]);
     if (existing.length > 0) {
@@ -205,6 +215,20 @@ export const actualizarPersona = async (req, res) => {
   const { id } = req.params;
   const { nombre, apellido, dni, telefono, direccion, zona, email, genero } = req.body;
   try {
+
+    if (!/^\d{8}$/.test(dni)) {
+      return res.status(400).json({ success: false, message: "DNI: utilizar 8 digitos" });
+    }
+    
+     if (!/^\d{10}$/.test(telefono)) {
+      return res.status(400).json({ success: false, message: "telefono: utilizar 10 digitos" });
+    }
+
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ success: false, message: "Email inválido: debe contener @ y un dominio (ej: nombre@ gmail.com)"
+  });
+}
+
     // Verificar DNI único (excluyendo la persona actual)
     const [existingDni] = await pool.query("SELECT * FROM persona WHERE dni = ? AND id_persona != ?", [dni, id]);
     if (existingDni.length > 0) {

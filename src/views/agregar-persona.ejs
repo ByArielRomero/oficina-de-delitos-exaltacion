@@ -135,9 +135,15 @@
                     type="text"
                     name="dni"
                     class="form-control"
-                    id="dni"
+                    placeholder="8 digitos"
                     required
+                    minlength="8"
+                    maxlength="8"
+                    pattern="[0-9]{8}"
+                    title="Solo números, de 8 digitos"
+                    id="dni"
                   />
+                  <small class="text-muted">Ej: 44888777</small>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="telefono" class="form-label"
@@ -147,9 +153,16 @@
                     type="tel"
                     name="telefono"
                     class="form-control"
-                    id="telefono"
+                    placeholder="10 digitos"
                     required
+                    minlength="10"
+                    maxlength="10"
+                    pattern="\d{10}"
+                    title="Solo números, de 10 dígitos"
+                    id="telefono"
+                    
                   />
+                  <small class="text-muted">Ej: 1132323232 ,sin 0 y 15</small>
                 </div>
               </div>
               <div class="row">
@@ -207,6 +220,8 @@
                     name="email"
                     class="form-control"
                     id="email"
+                    placeholder="ejemplo@gmail.com"
+                    title="Debe ser un dominio ejemplo@gmail.com"
                   />
                 </div>
 
@@ -741,3 +756,15 @@ async function logout() {
 </script>
   </body>
 </html>
+<script>
+// Limpia DNI y TELÉFONO automáticamente (solo números + longitud exacta)
+document.querySelectorAll('input[name="dni"], input[name="telefono"]').forEach(input => {
+  input.addEventListener('input', function () {
+    // Borra todo lo que no sea número
+    this.value = this.value.replace(/\D/g, '');
+    // Limita la longitud según el campo
+    if (this.name === 'dni') this.value = this.value.slice(0, 8);      // DNI: máx 8
+    if (this.name === 'telefono') this.value = this.value.slice(0, 10); // Tel: máx 10
+  });
+});
+</script>
