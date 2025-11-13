@@ -80,3 +80,19 @@ GROUP BY d.tipo_delito
 };
 
 
+// GET /dashboard
+export const getDashboard = async (req, res) => {
+  try {
+    const resumen = await getResumenGeneral(req, res);
+    const stats = await getStatsCharts(req, res);
+
+    res.render('dashboard', {
+      stats: resumen.data,
+      chartData: stats.data,
+      currentUser: req.user || null
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error en dashboard');
+  }
+};

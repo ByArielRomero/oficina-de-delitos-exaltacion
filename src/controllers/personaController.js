@@ -4,12 +4,28 @@ import pool from "../config/db.js"; // solo para obtener zonas
 export const mostrarFormularioPersona = async (req, res) => {
   try {
     const [zonas] = await pool.query("SELECT * FROM zona");
-    res.render("agregar-persona", { zonas });
+
+    // OBTENER PERSONAS PARA EL MODAL
+    const [personasRows] = await pool.query(`
+      SELECT id_persona AS id, nombre, apellido, dni, telefono, email, genero, z.nombre_zona AS zona
+      FROM persona p
+      LEFT JOIN zona z ON p.id_zona = z.id_zona
+      ORDER BY apellido, nombre
+    `);
+
+    res.render("agregar-persona", {
+      zonas,
+      currentUser: res.locals.currentUser
+      
+    });
   } catch (error) {
-    console.error("Error al obtener zonas:", error);
+    console.error("Error al obtener zonas/personas:", error);
     res.status(500).send("Error al cargar el formulario");
   }
 };
+
+
+/*-----------------_*/
 export const crearPersona = async (req, res) => {
   try {
     // Primero destructuramos del body
@@ -53,7 +69,7 @@ export const crearPersona = async (req, res) => {
 export const listarCasos = async (req, res) => {
   try {
     const [casos] = await pool.query(`
-      SELECT 
+      SELECT
         c.id_casos AS id,
         p.nombre,
         p.apellido,
@@ -70,14 +86,15 @@ export const listarCasos = async (req, res) => {
       ORDER BY c.id_casos DESC
     `);
 
-    console.log("✅ Casos obtenidos:", casos);
-    res.render("lista-casos", { casos });
+    res.render("lista-casos", { 
+      casos,
+      currentUser: req.user || null  // ← ¡AQUÍ!
+    });
   } catch (error) {
-    console.error("❌ Error al listar casos:", error);
+    console.error("Error al listar casos:", error);
     res.status(500).send("Error al listar casos");
   }
 };
-
 export const obtenerCaso = async (req, res) => {
   const { id } = req.params;
 
@@ -188,27 +205,41 @@ export const listarPersonas = async (req, res) => {
 export const borrarPersona = async (req, res) => {
   const { id } = req.params;
   try {
+    // Verificar autenticación y rol
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "No autenticado" });
+    }
+    // Usar el campo numérico id_rol: admin = 1, operador = 2
+    const id_rol = Number(req.user.id_rol || req.user.idRol || req.user.rol || req.user.role || 0);
+    if (id_rol !== 1) {
+      return res.status(403).json({ success: false, message: "Acceso denegado: solo admin puede borrar" });
+    }
+
     // Verificar si existe (y opcional: si tiene casos asociados, no borrar o manejar)
     const [existing] = await pool.query("SELECT * FROM persona WHERE id_persona = ?", [id]);
     if (existing.length === 0) {
       return res.status(404).json({ success: false, message: "Persona no encontrada" });
     }
-    
+
     // Borrar (asumimos que no hay FK restrictivas; si hay casos, considera soft-delete)
     await pool.query("DELETE FROM persona WHERE id_persona = ?", [id]);
     res.json({ success: true, message: "Persona borrada correctamente" });
   } catch (error) {
     console.error("Error al borrar persona:", error);
     if (error.sqlState === '23000' || error.code === 'ER_ROW_IS_REFERENCED_2' || error.code === 1451) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "No se puede borrar, tiene un caso asignado" 
+      return res.status(400).json({
+        success: false,
+        message: "No se puede borrar, tiene un caso asignado"
       });
     }
-   
+
     res.status(500).json({ success: false, message: "Error al borrar la persona." });
   }
 };
+
+// ← NUEVO: Eliminar caso (solo admin)
+
+
 
 // ← NUEVO: Actualizar persona
 export const actualizarPersona = async (req, res) => {

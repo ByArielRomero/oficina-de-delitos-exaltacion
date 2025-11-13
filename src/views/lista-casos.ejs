@@ -60,7 +60,14 @@
               data-bs-toggle="dropdown"
             >
               <i class="bi bi-person-circle"></i>
-              <span id="currentUser">Usuario</span>
+              <span id="currentUser">
+                <% if (currentUser) { %> <%= currentUser.nombre ||
+                currentUser.username %>
+                <small class="text-light-50">
+                  (<%= Number(currentUser.rol) === 1 ? 'Admin' : 'Operador' %>)
+                </small>
+                <% } else { %> Usuario <% } %>
+              </span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
               <li>
@@ -161,6 +168,16 @@
                 >
                   <i class="bi bi-pencil"></i>
                 </button>
+
+                <% if (currentUser && Number(currentUser.rol) === 1) { %>
+                <button
+                  class="btn btn-danger btn-sm"
+                  onclick="eliminarCaso('<%= caso.id %>')"
+                  title="Eliminar"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+                <% } %>
               </td>
             </tr>
             <% }) %> <% } %>
@@ -318,6 +335,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
       // ====================== PAGINACIÓN + FILTROS (TODO JUNTO) ======================
@@ -336,40 +354,42 @@
 
       // FUNCIÓN ÚNICA QUE HACE TODO: filtra + paginación
       function aplicarFiltrosYPagina() {
-        const search = document
-          .getElementById("searchInput")
-          .value.toLowerCase()
-          .trim();
-        const desde = document.getElementById("fechaDesde").value
-          ? new Date(document.getElementById("fechaDesde").value)
-          : null;
-        const hasta = document.getElementById("fechaHasta").value
-          ? new Date(document.getElementById("fechaHasta").value)
-          : null;
-        if (hasta) hasta.setHours(23, 59, 59, 999);
+  const search = document.getElementById("searchInput").value.toLowerCase().trim();
+  const desde = document.getElementById("fechaDesde").value ? new Date(document.getElementById("fechaDesde").value) : null;
+  const hasta = document.getElementById("fechaHasta").value ? new Date(document.getElementById("fechaHasta").value) : null;
+  if (hasta) hasta.setHours(23, 59, 59, 999);
 
-        let filasVisibles = [];
+  let filasVisibles = [];
 
-        filasOriginales.forEach((row) => {
-          const cells = row.querySelectorAll("td");
-          const texto = Array.from(cells)
-            .map((c) => c.textContent.toLowerCase())
-            .join(" ");
-          const fechaCell = cells[7];
-          const fechaIso = fechaCell?.dataset.fecha;
-          const fecha = fechaIso ? new Date(fechaIso) : null;
+  filasOriginales.forEach((row) => {
+    const cells = row.querySelectorAll("td");
 
-          const cumpleBusqueda = texto.includes(search);
-          const cumpleFecha =
-            (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
+    // MEJOR BUSQUEDA: incluye badge, fecha ISO y formato visible
+    const texto = Array.from(cells).map(cell => {
+      if (cell.querySelector('.badge')) {
+        return cell.querySelector('.badge').textContent.toLowerCase();
+      }
+      if (cell.dataset.fecha) {
+        const fecha = new Date(cell.dataset.fecha);
+        return cell.textContent.toLowerCase() + ' ' + fecha.toLocaleDateString('es-AR');
+      }
+      return cell.textContent.toLowerCase();
+    }).join(' ');
 
-          if (cumpleBusqueda && cumpleFecha) {
-            row.style.display = "";
-            filasVisibles.push(row);
-          } else {
-            row.style.display = "none";
-          }
-        });
+    const fechaCell = cells[7];
+    const fechaIso = fechaCell?.dataset.fecha;
+    const fecha = fechaIso ? new Date(fechaIso) : null;
+
+    const cumpleBusqueda = texto.includes(search);
+    const cumpleFecha = (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
+
+    if (cumpleBusqueda && cumpleFecha) {
+      row.style.display = "";
+      filasVisibles.push(row);
+    } else {
+      row.style.display = "none";
+    }
+  });
 
         // PAGINACIÓN
         const totalPaginas = Math.ceil(filasVisibles.length / ITEMS_POR_PAGINA);
@@ -405,45 +425,44 @@
 
       // Cambiar página
       window.cambiarPagina = function (pag) {
-        const search = document
-          .getElementById("searchInput")
-          .value.toLowerCase()
-          .trim();
-        const desde = document.getElementById("fechaDesde").value
-          ? new Date(document.getElementById("fechaDesde").value)
-          : null;
-        const hasta = document.getElementById("fechaHasta").value
-          ? new Date(document.getElementById("fechaHasta").value)
-          : null;
-        if (hasta) hasta.setHours(23, 59, 59, 999);
+  const search = document.getElementById("searchInput").value.toLowerCase().trim();
+  const desde = document.getElementById("fechaDesde").value ? new Date(document.getElementById("fechaDesde").value) : null;
+  const hasta = document.getElementById("fechaHasta").value ? new Date(document.getElementById("fechaHasta").value) : null;
+  if (hasta) hasta.setHours(23, 59, 59, 999);
 
-        let filasVisibles = [];
+  let filasVisibles = [];
 
-        filasOriginales.forEach((row) => {
-          const cells = row.querySelectorAll("td");
-          const texto = Array.from(cells)
-            .map((c) => c.textContent.toLowerCase())
-            .join(" ");
-          const fechaCell = cells[7];
-          const fechaIso = fechaCell?.dataset.fecha;
-          const fecha = fechaIso ? new Date(fechaIso) : null;
+  filasOriginales.forEach((row) => {
+    const cells = row.querySelectorAll("td");
 
-          const cumpleBusqueda = texto.includes(search);
-          const cumpleFecha =
-            (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
+    const texto = Array.from(cells).map(cell => {
+      if (cell.querySelector('.badge')) {
+        return cell.querySelector('.badge').textContent.toLowerCase();
+      }
+      if (cell.dataset.fecha) {
+        const fecha = new Date(cell.dataset.fecha);
+        return cell.textContent.toLowerCase() + ' ' + fecha.toLocaleDateString('es-AR');
+      }
+      return cell.textContent.toLowerCase();
+    }).join(' ');
 
-          if (cumpleBusqueda && cumpleFecha) {
-            filasVisibles.push(row);
-          }
-        });
+    const fechaCell = cells[7];
+    const fechaIso = fechaCell?.dataset.fecha;
+    const fecha = fechaIso ? new Date(fechaIso) : null;
 
-        const inicio = (pag - 1) * ITEMS_POR_PAGINA;
-        const fin = inicio + ITEMS_POR_PAGINA;
+    const cumpleBusqueda = texto.includes(search);
+    const cumpleFecha = (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
 
-        // Ocultar todas
-        filasOriginales.forEach((r) => (r.style.display = "none"));
-        // Mostrar solo las de esta página
-        filasVisibles.slice(inicio, fin).forEach((r) => (r.style.display = ""));
+    if (cumpleBusqueda && cumpleFecha) {
+      filasVisibles.push(row);
+    }
+  });
+
+  const inicio = (pag - 1) * ITEMS_POR_PAGINA;
+  const fin = inicio + ITEMS_POR_PAGINA;
+
+  filasOriginales.forEach((r) => (r.style.display = "none"));
+  filasVisibles.slice(inicio, fin).forEach((r) => (r.style.display = ""));
 
         // Actualizar active
         document
@@ -732,6 +751,45 @@
             alert("Error de red");
           }
         });
+
+      async function eliminarCaso(casoId) {
+        const result = await Swal.fire({
+          title: "¿Eliminar caso?",
+          text: "Esta acción no se puede deshacer",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Sí, eliminar",
+          cancelButtonText: "Cancelar",
+        });
+
+        if (result.isConfirmed) {
+          try {
+            const res = await fetch(`/api/casos/${casoId}`, {
+              method: "DELETE",
+              credentials: "include",
+            });
+
+            if (res.ok) {
+              Swal.fire("Eliminado", "El caso fue borrado", "success").then(
+                () => {
+                  location.reload();
+                }
+              );
+            } else {
+              const data = await res.json();
+              Swal.fire(
+                "Error",
+                data.message || "No se pudo eliminar",
+                "error"
+              );
+            }
+          } catch (err) {
+            Swal.fire("Error", "Error de conexión", "error");
+          }
+        }
+      }
     </script>
   </body>
 </html>

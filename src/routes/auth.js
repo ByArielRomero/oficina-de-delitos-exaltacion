@@ -17,8 +17,11 @@ router.get("/login", (req, res) => {
 });
 
 // REGISTER → privada
-router.get("/register", (req, res) => {
-  res.render("register", { alert: null });
+router.get("/register", protect, (req, res) => {
+  res.render("register", { 
+    alert: null, 
+    currentUser: res.locals.currentUser || req.user || null 
+  });
 });
 
 // POST routes
@@ -63,6 +66,7 @@ router.get("/dashboard", protect, async (req, res) => {
         totalZonas: totalZonas[0].total,
         casosMes: casosMes[0].total,
       },
+       currentUser: req.user || null
     });
   } catch (error) {
     console.error("Error al cargar el dashboard:", error);

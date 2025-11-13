@@ -22,10 +22,10 @@ const authController = {
         [name, passwordHash, rol]
       );
 
-      return res.render("register", { alert: "success" });
+      return res.render("register", { alert: "success",currentUser: req.user || null});
     } catch (error) {
       console.error("Error al registrar usuario:", error);
-      return res.render("register", { alert: "error" });
+      return res.render("register", { alert: "error" ,currentUser: req.user || null});
     }
   },
 
@@ -58,22 +58,24 @@ const authController = {
 
       // login exitoso
       const token = jwt.sign(
-        { id: user.id_usuario, name: user.nombre_usuario },
+        {
+          id: user.id_usuario,
+          name: user.nombre_usuario,
+          rol: user.id_rol, // 👈 incluimos el rol
+        },
         process.env.JWT_SECRET,
-        { expiresIn: "30m" } // 1 minuto solo para pruebas
+        { expiresIn: "30m" }
       );
-
       res.cookie("jwt", token, {
         httpOnly: true,
         secure: false, // true si usás HTTPS
         sameSite: "lax",
         path: "/", // 👈 importante: para que sea global y se pueda borrar igual
-        maxAge: 30 * 60 * 1000, 
+        maxAge: 30 * 60 * 1000,
       });
 
       req.session.alert = "success"; // mensaje de inicio de sesión
-      return res.redirect("/dashboard")
-
+      return res.redirect("/dashboard");
     } catch (error) {
       console.error("Error en login:", error);
       return res.redirect("/login?alert=error");

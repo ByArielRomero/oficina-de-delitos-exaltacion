@@ -178,8 +178,72 @@ export const mostrarFormularioCaso = async (req, res) => {
     const [delitos] = await pool.query("SELECT id_delito, tipo_delito FROM delito ORDER BY tipo_delito");
     const [zonas] = await pool.query("SELECT id_zona, nombre_zona FROM zona ORDER BY nombre_zona");
     const [usuarios] = await pool.query("SELECT id_usuario, nombre_usuario FROM usuario ORDER BY nombre_usuario");
-    res.render("agregar-casos", { alert: req.session?.alert || null, personas, delitos, zonas, usuarios });
+    res.render("agregar-casos", { alert: req.session?.alert || null, personas, delitos, zonas, usuarios ,currentUser: req.user || null});
   } catch (error) {
     res.status(500).send("Error al cargar formulario");
+  }
+};
+
+// === Nueva función: Listar casos (con usuario actual) ===
+export const listarCasos = async (req, res) => {
+  try {
+    const [casos] = await pool.query(/* tu consulta */);
+
+    // DEBUG: ver en server si req.user existe
+    console.log('listarCasos - req.user =', req.user);
+
+    res.render("lista-casos", {
+      casos,
+      currentUser: req.user || null
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error al listar casos");
+  }
+};
+
+// ← NUEVO: Eliminar caso (solo admin)
+export const eliminarCaso = async (req, res) => {
+  const { id } = req.params;
+
+  // DIAGNÓSTICO
+  console.log("=== INTENTO DE ELIMINAR CASO ===");
+  console.log("ID del caso:", id);
+  console.log("req.user:", req.user);
+  console.log("req.user.rol (crudo):", req.user?.rol);
+  console.log("Tipo de rol:", typeof req.user?.rol);
+  console.log("=====================================");
+
+  try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "No autenticado" });
+    }
+
+    const rol = Number(req.user.rol || 0);
+    console.log("ROL CONVERTIDO A NÚMERO:", rol);
+
+    if (rol !== 1) {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Acceso denegado: solo admin",
+        debug: { 
+          rol_original: req.user.rol,
+          rol_convertido: rol,
+          tipo: typeof req.user.rol
+        }
+      });
+    }
+
+    const [caso] = await pool.query("SELECT 1 FROM casos WHERE id_casos = ?", [id]);
+    if (!caso.length) {
+      return res.status(404).json({ success: false, message: "Caso no encontrado" });
+    }
+
+    await pool.query("DELETE FROM casos WHERE id_casos = ?", [id]);
+    console.log("CASO ELIMINADO CORRECTAMENTE:", id);
+    res.json({ success: true, message: "Caso eliminado correctamente" });
+  } catch (error) {
+    console.error("ERROR EN ELIMINAR CASO:", error);
+    res.status(500).json({ success: false, message: "Error del servidor" });
   }
 };
