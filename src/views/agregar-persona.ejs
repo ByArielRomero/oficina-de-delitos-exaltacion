@@ -348,6 +348,8 @@
                 <input type="hidden" id="editIdZona" name="id" />
                 <div class="mb-3">
                   <label class="form-label">Nombre de la Zona</label>
+                  <input type="text" class="form-control" id="nombreZona" required minlength="2" />
+              <small class="text-muted">Ej: "Centro", "Norte", etc.</small>
                   <input
                     type="text"
                     name="nombreZona"
@@ -920,10 +922,6 @@
                 if (this.name === "telefono") this.value = this.value.slice(0, 10); // Tel: máx 10
               });
             });
-
-             console.log("DEBUG server currentUser:", <%- JSON.stringify(currentUser || null) %>);
-
-      console.log("👤 currentUser recibido:", <%- JSON.stringify(currentUser, null, 2) %>);
     </script>
   </body>
 </html>
