@@ -137,12 +137,10 @@
               <td><%= caso.zona %></td>
 
               <td
-                data-fecha="<%= caso.fecha_creada ? new Date(caso.fecha_creada).toISOString() : '' %>"
-              >
-                <%= caso.fecha_creada ? new
-                Date(caso.fecha_creada).toLocaleString('es-AR', { timeZone:
-                'America/Argentina/Buenos_Aires' }) : '-' %>
-              </td>
+  data-fecha="<%= caso.fecha_creada ? new Date(caso.fecha_creada).toISOString() : '' %>"
+>
+  <%= caso.fecha_creada ? new Date(caso.fecha_creada).toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' }) : '-' %>
+</td>
 
               <td>
                 <% const estado = (caso.estado === 'Pendiente' ? 'Pendiente' :
@@ -355,8 +353,8 @@
       // FUNCIÓN ÚNICA QUE HACE TODO: filtra + paginación
       function aplicarFiltrosYPagina() {
   const search = document.getElementById("searchInput").value.toLowerCase().trim();
-  const desde = document.getElementById("fechaDesde").value ? new Date(document.getElementById("fechaDesde").value) : null;
-  const hasta = document.getElementById("fechaHasta").value ? new Date(document.getElementById("fechaHasta").value) : null;
+let desde = document.getElementById("fechaDesde").value ? new Date(document.getElementById("fechaDesde").value + 'T00:00:00') : null;  // ← Fuerza 00:00 local
+let hasta = document.getElementById("fechaHasta").value ? new Date(document.getElementById("fechaHasta").value + 'T23:59:59.999') : null;  // ← Fuerza 23:59 local
   if (hasta) hasta.setHours(23, 59, 59, 999);
 
   let filasVisibles = [];
@@ -496,18 +494,13 @@
       // ====================== EXPORTAR ======================
       // ====================== EXPORTAR TODOS LOS CASOS (NO SOLO LOS 10 VISIBLES) ======================
       function exportar(formato) {
-        // 1. RECALCULAR QUÉ FILAS ESTÁN VISIBLES SEGÚN EL FILTRO ACTUAL
+        // 1. RECALCULAR QUÉ FILAS ESTÁN VISIBLES SEGÚN EL FILTRO ACTUAL (CON AJUSTE DE FECHAS)
         const search = document
           .getElementById("searchInput")
           .value.toLowerCase()
           .trim();
-        const desde = document.getElementById("fechaDesde").value
-          ? new Date(document.getElementById("fechaDesde").value)
-          : null;
-        const hasta = document.getElementById("fechaHasta").value
-          ? new Date(document.getElementById("fechaHasta").value)
-          : null;
-        if (hasta) hasta.setHours(23, 59, 59, 999);
+        let desde = document.getElementById("fechaDesde").value ? new Date(document.getElementById("fechaDesde").value + 'T00:00:00') : null;  // ← Fuerza 00:00 local
+        let hasta = document.getElementById("fechaHasta").value ? new Date(document.getElementById("fechaHasta").value + 'T23:59:59.999') : null;  // ← Fuerza 23:59 local
 
         const filasFiltradas = filasOriginales.filter((row) => {
           const cells = row.querySelectorAll("td");
@@ -517,17 +510,14 @@
           const fechaCell = cells[7];
           const fechaIso = fechaCell?.dataset.fecha;
           const fecha = fechaIso ? new Date(fechaIso) : null;
-
           const cumpleBusqueda = texto.includes(search);
-          const cumpleFecha =
-            (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
-
+          const cumpleFecha = (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
           return cumpleBusqueda && cumpleFecha;
         });
 
         if (filasFiltradas.length === 0) {
           return alert("No hay casos para exportar con el filtro actual");
-        }
+       }
 
         // 2. ARMAR LOS DATOS DE TODAS LAS FILAS FILTRADAS
         const datos = filasFiltradas.map((row) => {
@@ -640,26 +630,30 @@
           const { caso } = await res.json();
           const html = `
       <div class="row">
-        <div class="col-md-6"><strong>ID:</strong> ${caso.id}</div>
         <div class="col-md-6"><strong>Nombre:</strong> ${caso.nombre} ${
             caso.apellido
           }</div>
+        <div class="col-md-6"><strong>Zona:</strong> ${caso.zona}</div>
         <div class="col-md-6"><strong>DNI:</strong> ${caso.dni}</div>
-        <div class="col-md-6"><strong>Teléfono:</strong> ${
-          caso.telefono || "-"
-        }</div>
         <div class="col-md-6"><strong>Tipo de Caso:</strong> ${
           caso.tipo_caso
         }</div>
-        <div class="col-md-6"><strong>Zona:</strong> ${caso.zona}</div>
+        <div class="col-md-6"><strong>Teléfono:</strong> ${
+          caso.telefono || "-"
+        }</div>
         <div class="col-md-6"><strong>Estado:</strong> <span class="badge ${getBadgeClass(
           caso.estado
         )}">${caso.estado}</span></div>
-        <div class="col-md-6"><strong>Fecha:</strong> ${new Date(
-          caso.fecha_creada
-        ).toLocaleString("es-AR")}</div>
         <div class="col-12"><strong>Observaciones:</strong> ${
           caso.observacion || '<em class="text-muted">Sin observaciones</em>'
+        }</div>
+        <div class="col-md-6"><strong>Fecha:</strong> ${new Date(
+          caso.fecha_creada
+        ).toLocaleString("es-AR", { timeZone: 'America/Argentina/Buenos_Aires', hour12: false })}</div>
+        <div class="col-md-6"><strong>Fecha Actualizada:</strong> ${
+          caso.fecha_actualizado
+            ? new Date(caso.fecha_actualizado).toLocaleString("es-AR", { timeZone: 'America/Argentina/Buenos_Aires', hour12: false })
+            : '<em class="text-muted">No actualizada</em>'
         }</div>
       </div>`;
           document.getElementById("detallesCaso").innerHTML = html;
