@@ -211,12 +211,21 @@
                 <label for="nombreTipoCaso" class="form-label"
                   >Nombre del Tipo de Caso</label
                 >
+                <button
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#modalGestionarTiposCaso"
+              >
+                <i class="bi bi-list-ul"></i> Gestionar Casos
+              </button>
                 <input
                   type="text"
                   class="form-control"
                   id="nombreTipoCaso"
                   required
                 />
+                
               </div>
               <button type="submit" class="btn btn-primary w-100">
                 <i class="bi bi-plus-circle"></i> Agregar
@@ -325,14 +334,72 @@
         </div>
       </div>
     </div>
+  
+  
   </div>
+
+  <!-- MODAL GESTIONAR TIPOS DE CASO -->
+<div class="modal fade" id="modalGestionarTiposCaso" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-tags"></i> Gestionar Tipos de Caso
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Barra de búsqueda -->
+        <div class="mb-3">
+          <input
+            type="text"
+            class="form-control"
+            id="searchTiposCaso"
+            placeholder="Buscar tipo..."
+          />
+        </div>
+
+        <!-- Tabla -->
+        <div id="listaTiposCaso" class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyTiposCaso"></tbody>
+          </table>
+        </div>
+
+        <!-- Form edición (oculto) -->
+        <div id="formEdicionTipoCaso" class="mt-4" style="display: none">
+          <h6>Editar Tipo</h6>
+          <form id="editFormTipoCaso">
+            <input type="hidden" id="editIdTipoCaso" name="id" />
+            <div class="mb-3">
+              <label class="form-label">Nombre</label>
+              <input type="text" name="tipo_delito" class="form-control" required />
+            </div>
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary">Actualizar</button>
+              <button type="button" class="btn btn-secondary" onclick="cancelarEdicionTipoCaso()">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Para Swal en logout -->
     <!-- Tus scripts (cambia a /js/ si static) -->
-    <script src="/js/auth.js"></script>
-    <script src="/js/data.js"></script>
-    <script src="/js/agregar-caso.js"></script>
+    <script type="module" src="/js/auth.js"></script>
+    <script type="module" src="/js/data.js"></script>
+    <script type="module" src="/js/agregar-caso.js"></script>
     <script>
       async function logout() {
         try {
@@ -363,6 +430,9 @@
     const formCaso = document.getElementById("formCaso");
     const formTipoCaso = document.getElementById("formTipoCaso");
     const fechaCreacionInput = document.getElementById("fechaCreacion");
+    document.getElementById("modalGestionarZonas").addEventListener("show.bs.modal", cargarZonas);
+    document.getElementById("searchZonas").addEventListener("input", filtrarZonas);
+    document.getElementById("editFormZona").addEventListener("submit", editarZonaSubmit);
     const fechaActualizacionInput =
       document.getElementById("fechaActualizacion");
 
@@ -390,12 +460,17 @@
             document.getElementById("modalAgregarTipo")
           ).hide();
           document.getElementById("nombreTipoCaso").value = "";
-          alert("Tipo agregado");
+          Swal.fire({
+            title: "¡Tipo agregado!",
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false
+          });
         } else {
-          alert("Error: " + result.message);
+          Swal.fire("Error", result.message, "error");
         }
       } catch (error) {
-        alert("Error al agregar tipo");
+        Swal.fire("Error", result.message, "error");
       }
     });
 
@@ -412,10 +487,16 @@
         fecha_actualizacion: fechaActualizacionInput.value,
       };
 
-      if (!formData.id_persona || !formData.id_delito || !formData.id_zona) {
-        alert("Persona, zona y tipo son requeridos");
-        return;
-      }
+     // === VALIDACIÓN DE CAMPOS REQUERIDOS ===
+  if (!formData.id_persona || !formData.id_delito || !formData.id_zona) {
+    Swal.fire({
+      title: "Campos incompletos",
+      text: "Persona, zona y tipo de caso son obligatorios",
+      icon: "warning",
+      confirmButtonText: "Entendido"
+    });
+    return;
+  }
 
       try {
         const response = await fetch("/api/casos", {
@@ -426,14 +507,35 @@
         });
         const result = await response.json();
         if (result.success) {
-          alert("Caso creado");
-          formCaso.reset();
-          window.location.href = "/lista-casos";
+          // Success: CASO CREADO
+          await Swal.fire({
+            title: "¡Caso creado con éxito!",
+            text: "Redireccionando a la lista de casos...",
+            icon: "success",
+            timer: 1800,
+            timerProgressBar: true,
+            showConfirmButton: false
+          });
+      formCaso.reset();
+      window.location.href = "/lista-casos";
         } else {
-          alert("Error: " + result.message);
+          // Error: DEL BACKEND
+         const msg = result?.message || "Error desconocido. Intenta nuevamente.";
+       Swal.fire({
+      title: "Error al crear caso",
+      text: msg,
+      icon: "error",
+      confirmButtonText: "OK"
+    });
         }
       } catch (error) {
-        alert("Error al crear caso");
+        // Error: CONEXIÓN O JS
+            Swal.fire({
+        title: "Error de conexión",
+        text: "No se pudo conectar con el servidor",
+        icon: "error",
+        confirmButtonText: "OK"
+      });
       }
     });
 
@@ -527,119 +629,256 @@
           }
         });
       }
-    // ← NUEVO: Gestión de zonas (carga, filtro, editar, borrar)
-      let todasLasZonas = [];
-      let editingIdZona = null;
-      // Event listeners para modal de zonas
-      document
-        .getElementById("modalGestionarZonas")
-        .addEventListener("show.bs.modal", cargarZonas);
-      document
-        .getElementById("searchZonas")
-        .addEventListener("input", filtrarZonas);
-      document
-        .getElementById("editFormZona")
-        .addEventListener("submit", editarZonaSubmit);
-      async function cargarZonas() {
-        try {
-          const res = await fetch("/zonas");
-          const { zonas } = await res.json();
-          todasLasZonas = zonas;
-          renderizarZonas(zonas);
-        } catch (err) {
-          Swal.fire("Error", "No se pudieron cargar las zonas", "error");
-        }
+  });
+
+
+ // ====================================
+// === ZONAS: GLOBALES (FUERA DE DOMContentLoaded) ===
+// ====================================
+let todasLasZonas = [];
+let editingIdZona = null;
+
+async function cargarZonas() {
+  try {
+    const res = await fetch("/zonas");
+    const { zonas } = await res.json();
+    todasLasZonas = zonas;
+    renderizarZonas(zonas);
+  } catch (err) {
+    Swal.fire("Error", "No se pudieron cargar las zonas", "error");
+  }
+}
+
+function renderizarZonas(zonas) {
+  const tbody = document.getElementById("tbodyZonas");
+  tbody.innerHTML = "";
+  zonas.forEach(z => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${z.nombre_zona}</td>
+      <td>
+        <button class="btn btn-sm btn-warning" onclick="editarZona(${z.id_zona})">Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="borrarZona(${z.id_zona})">Borrar</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filtrarZonas() {
+  const termino = document.getElementById("searchZonas").value.toLowerCase();
+  const filtradas = todasLasZonas.filter(z => z.nombre_zona.toLowerCase().includes(termino));
+  renderizarZonas(filtradas);
+}
+
+async function editarZona(id) {
+
+  document.getElementById('searchZonas').style.display = "none";  
+  const zona = todasLasZonas.find(z => z.id_zona === id);
+  if (!zona) return;
+  editingIdZona = id;
+  document.getElementById("editIdZona").value = id;
+  document.querySelector('#editFormZona input[name="nombreZona"]').value = zona.nombre_zona;
+  document.getElementById("listaZonas").style.display = "none";
+  document.getElementById("formEdicionZona").style.display = "block";
+}
+
+function cancelarEdicionZona() {
+  document.getElementById("formEdicionZona").style.display = "none";
+  document.getElementById("listaZonas").style.display = "block";
+  editingIdZona = null;
+}
+
+async function editarZonaSubmit(e) {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target));
+  try {
+    const res = await fetch(`/zonas/${editingIdZona}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (result.success) {
+      Swal.fire("Éxito", result.message, "success").then(() => {
+        cancelarEdicionZona();
+        cargarZonas();
+        actualizarSelectZonas();
+      });
+    } else {
+      Swal.fire("Error", result.message, "error");
+    }
+  } catch (err) {
+    Swal.fire("Error", "No se pudo actualizar", "error");
+  }
+}
+
+async function borrarZona(id) {
+  const zona = todasLasZonas.find(z => z.id_zona === id);
+  const confirm = await Swal.fire({
+    title: `¿Borrar "${zona.nombre_zona}"?`,
+    text: "Esta acción no se puede deshacer.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, borrar",
+    cancelButtonText: "Cancelar"
+  });
+
+  if (confirm.isConfirmed) {
+    try {
+      const res = await fetch(`/zonas/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        Swal.fire("¡Borrado!", data.message, "success");
+        cargarZonas();
+        actualizarSelectZonas();
+      } else {
+        Swal.fire("Error", data.message, "error");
       }
-      function renderizarZonas(zonas) {
-        const tbody = document.getElementById("tbodyZonas");
-        tbody.innerHTML = "";
-        zonas.forEach((z) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${z.nombre_zona}</td>
-            <td>
-              <button class="btn btn-sm btn-warning" onclick="editarZona(${z.id_zona})">
-                ✏️
-              </button>
-              <button class="btn btn-sm btn-danger" onclick="borrarZona(${z.id_zona})">
-                <i class="bi bi-trash"></i>
-              </button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      }
-      function filtrarZonas() {
-        const termino = document
-          .getElementById("searchZonas")
-          .value.toLowerCase();
-        const filtradas = todasLasZonas.filter((z) =>
-          z.nombre_zona.toLowerCase().includes(termino)
-        );
-        renderizarZonas(filtradas);
-      }
-      async function editarZona(id) {
-        const zona = todasLasZonas.find((z) => z.id_zona === id);
-        if (!zona) return;
-        editingIdZona = id;
-        document.getElementById("editIdZona").value = id;
-        document.querySelector('#editFormZona input[name="nombreZona"]').value =
-          zona.nombre_zona;
-        document.getElementById("listaZonas").style.display = "none";
-        document.getElementById("formEdicionZona").style.display = "block";
-      }
-      function cancelarEdicionZona() {
-        document.getElementById("formEdicionZona").style.display = "none";
-        document.getElementById("listaZonas").style.display = "block";
-        editingIdZona = null;
-      }
-      async function editarZonaSubmit(e) {
-        e.preventDefault();
-        const data = Object.fromEntries(new FormData(e.target).entries());
-        try {
-          const res = await fetch(`/zonas/${editingIdZona}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          });
-          const result = await res.json();
-          if (result.success) {
-            Swal.fire("Éxito", result.message, "success").then(() => {
-              cancelarEdicionZona();
-              cargarZonas();
-            });
-          } else {
-            Swal.fire("Error", result.message, "error");
-          }
-        } catch (err) {
-          Swal.fire("Error", "No se pudo actualizar", "error");
-        }
-      }
-      async function borrarZona(id) {
-        const zona = todasLasZonas.find((z) => z.id_zona === id);
-        Swal.fire({
-          title: `¿Borrar "${zona.nombre_zona}"?`,
-          text: "Esta acción no se puede deshacer.",
-          icon: "warning",
-          showCancelButton: true,
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            try {
-              const res = await fetch(`/zonas/${id}`, { method: "DELETE" });
-              const data = await res.json();
-              if (data.success) {
-                Swal.fire("Borrado", data.message, "success");
-                cargarZonas();
-              } else {
-                Swal.fire("Error", data.message, "error");
-              }
-            } catch (err) {
-              Swal.fire("Error", "No se pudo borrar", "error");
-            }
-          }
-        });
+    } catch (err) {
+      Swal.fire("Error", "No se pudo borrar", "error");
+    }
+  }
+}
+
+function actualizarSelectZonas() {
+  fetch("/zonas")
+    .then(res => res.json())
+    .then(result => {
+      if (result.success) {
+        const select = document.getElementById("zonaId");
+        const valorActual = select.value;
+        select.innerHTML = '<option value="">Seleccione una zona</option>';
+        result.zonas.forEach(z => select.appendChild(new Option(z.nombre_zona, z.id_zona)));
+        select.value = valorActual;
       }
     });
+}
+// === GESTIÓN DE TIPOS DE CASO ===
+let todosLosTiposCaso = [];
+let editingIdTipoCaso = null;
+
+document.getElementById("modalGestionarTiposCaso").addEventListener("show.bs.modal", cargarTiposCaso);
+document.getElementById("searchTiposCaso").addEventListener("input", filtrarTiposCaso);
+document.getElementById("editFormTipoCaso").addEventListener("submit", editarTipoCasoSubmit);
+
+async function cargarTiposCaso() {
+  try {
+    const res = await fetch("/api/casos/delitos", { credentials: "include" });
+    const { delitos } = await res.json();
+    todosLosTiposCaso = delitos;
+    renderizarTiposCaso(delitos);
+  } catch (err) {
+    Swal.fire("Error", "No se pudieron cargar los tipos", "error");
+  }
+}
+
+function renderizarTiposCaso(tipos) {
+  const tbody = document.getElementById("tbodyTiposCaso");
+  tbody.innerHTML = "";
+  tipos.forEach((t) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${t.tipo_delito}</td>
+      <td>
+        <button class="btn btn-sm btn-warning" onclick="editarTipoCaso(${t.id_delito})">Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="borrarTipoCaso(${t.id_delito})">Borrar</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filtrarTiposCaso() {
+  const term = document.getElementById("searchTiposCaso").value.toLowerCase();
+  const filtrados = todosLosTiposCaso.filter(t => t.tipo_delito.toLowerCase().includes(term));
+  renderizarTiposCaso(filtrados);
+}
+
+async function editarTipoCaso(id) {
+  const tipo = todosLosTiposCaso.find(t => t.id_delito === id);
+  editingIdTipoCaso = id;
+  document.getElementById("editIdTipoCaso").value = id;
+  document.querySelector('#editFormTipoCaso input[name="tipo_delito"]').value = tipo.tipo_delito;
+  document.querySelector('#modalGestionarTiposCaso .mb-3').style.display = "none";
+  document.getElementById("listaTiposCaso").style.display = "none";
+  document.getElementById("formEdicionTipoCaso").style.display = "block";
+}
+
+function cancelarEdicionTipoCaso() {
+  document.getElementById("formEdicionTipoCaso").style.display = "none";
+  document.querySelector('#modalGestionarTiposCaso .mb-3').style.display = "block";
+  document.getElementById("listaTiposCaso").style.display = "block";
+}
+
+async function editarTipoCasoSubmit(e) {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target));
+  const res = await fetch(`/api/casos/delito/${editingIdTipoCaso}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const result = await res.json();
+  if (result.success) {
+    Swal.fire("Éxito", "Tipo actualizado", "success").then(() => {
+      cancelarEdicionTipoCaso();
+      cargarTiposCaso();
+      actualizarSelectTiposCaso();
+    });
+  }
+}
+
+async function borrarTipoCaso(id) {
+  const tipo = todosLosTiposCaso.find(t => t.id_delito === id);
+  
+  const confirm = await Swal.fire({
+    title: `¿Borrar "${tipo.tipo_delito}"?`,
+    text: "Se eliminará de todos los casos.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, borrar",
+    cancelButtonText: "Cancelar"
+  });
+
+  if (confirm.isConfirmed) {
+    try {
+      const res = await fetch(`/api/casos/delito/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        Swal.fire("¡Borrado!", data.message, "success");
+        cargarTiposCaso();
+        actualizarSelectTiposCaso();
+      } else {
+        Swal.fire("Error", data.message, "error");
+      }
+    } catch (err) {
+        Swal.fire("Error", "No se pudo conectar al servidor", "error");
+    }
+  }
+}
+
+function actualizarSelectTiposCaso() {
+  fetch("/api/casos/data")
+    .then(res => res.json())
+    .then(result => {
+      if (result.success) {
+        const select = document.getElementById("tipoCaso");
+        const valorActual = select.value;
+        select.innerHTML = '<option value="">Seleccione un tipo</option>';
+        result.data.delitos.forEach(d => {
+          const opt = new Option(d.tipo_delito, d.id_delito);
+          select.appendChild(opt);
+        });
+        select.value = valorActual;
+      }
+    });
+}
   </script>
 </body>
 </html>

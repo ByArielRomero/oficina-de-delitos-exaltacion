@@ -48,7 +48,7 @@ app.get('/', (req, res) => {
 app.use("/", authRoutes);
 app.use("/", personaRoutes);
 app.use("/", dashboardRoutes);
-app.use("/zonas", zonaRoutes);
+app.use("/zonas", zonaRoutes); 
 app.use("/", casoRoutes);
 
 

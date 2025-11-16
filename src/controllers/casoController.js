@@ -247,3 +247,41 @@ export const eliminarCaso = async (req, res) => {
     res.status(500).json({ success: false, message: "Error del servidor" });
   }
 };
+
+// === LISTAR TODOS LOS DELITOS ===
+export const getDelitosList = async (req, res) => {
+  try {
+    const [delitos] = await pool.query("SELECT id_delito, tipo_delito FROM delito ORDER BY tipo_delito");
+    res.json({ delitos });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error al cargar delitos" });
+  }
+};
+
+export const updateDelito = async (req, res) => {
+  const { id } = req.params;
+  const { tipo_delito } = req.body;
+  if (!tipo_delito || tipo_delito.trim().length < 2) {
+    return res.status(400).json({ success: false, message: "Nombre inválido" });
+  }
+  try {
+    await pool.query("UPDATE delito SET tipo_delito = ? WHERE id_delito = ?", [tipo_delito.trim(), id]);
+    res.json({ success: true, message: "Delito actualizado" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error al actualizar" });
+  }
+};
+
+export const deleteDelito = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [casos] = await pool.query("SELECT 1 FROM casos WHERE id_delito = ? LIMIT 1", [id]);
+    if (casos.length > 0) {
+      return res.status(400).json({ success: false, message: "Hay casos asociados" });
+    }
+    await pool.query("DELETE FROM delito WHERE id_delito = ?", [id]);
+    res.json({ success: true, message: "Delito eliminado" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error al borrar" });
+  }
+};

@@ -212,7 +212,7 @@
             </div>
           </div>
           <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <button id="btnExportFiltro" class="btn btn-outline-primary btn-sm">
+            <button style="display: none;" id="btnExportFiltro" class="btn btn-outline-primary btn-sm">
               Filtrar
             </button>
             <button id="btnExcel" class="btn btn-success btn-sm">Excel</button>
@@ -488,9 +488,12 @@ let hasta = document.getElementById("fechaHasta").value ? new Date(document.getE
           .addEventListener("input", aplicarFiltrosYPagina);
       });
       document
-        .getElementById("btnExportFiltro")
-        .addEventListener("click", aplicarFiltrosYPagina);
-
+      .getElementById("btnExportFiltro")
+      .addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        aplicarFiltrosYPagina();
+      });
       // ====================== EXPORTAR ======================
       // ====================== EXPORTAR TODOS LOS CASOS (NO SOLO LOS 10 VISIBLES) ======================
       function exportar(formato) {
@@ -516,7 +519,13 @@ let hasta = document.getElementById("fechaHasta").value ? new Date(document.getE
         });
 
         if (filasFiltradas.length === 0) {
-          return alert("No hay casos para exportar con el filtro actual");
+          Swal.fire({
+            title: "Sin datos",
+            text: "No hay casos para exportar con el filtro actual",
+            icon: "info",
+            confirmButtonText: "OK"
+          });
+          return;
        }
 
         // 2. ARMAR LOS DATOS DE TODAS LAS FILAS FILTRADAS
@@ -602,7 +611,14 @@ let hasta = document.getElementById("fechaHasta").value ? new Date(document.getE
         }
 
         // Mensaje final
-        alert(`¡Listo! Se exportaron ${datos.length} casos correctamente`);
+        Swal.fire({
+        title: "¡Exportado!",
+        html: `<strong>${datos.length}</strong> casos exportados correctamente<br><small>Formato: <strong>${formato === 'excel' ? 'Excel' : 'PDF'}</strong></small>`,
+        icon: "success",
+        timer: 2500,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
       }
 
       // Botones (igual que antes)
@@ -735,14 +751,24 @@ let hasta = document.getElementById("fechaHasta").value ? new Date(document.getE
               body: JSON.stringify(formData),
             });
             if (res.ok) {
-              alert("Caso actualizado");
+              // SWEETALERT LINDO
+              // CERRAR MODAL
+               bootstrap.Modal.getInstance(document.getElementById("modalEditar")).hide();
+              await Swal.fire({
+                title: "¡Actualizado!",
+                text: "El caso se guardó correctamente",
+                icon: "success",
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false
+              });
               location.reload();
             } else {
-              const data = await res.json();
-              alert("Error: " + data.message);
+                const data = await res.json();
+               Swal.fire("Error", data.message || "No se pudo actualizar", "error");
             }
           } catch (err) {
-            alert("Error de red");
+            Swal.fire("Error", "Error de conexión", "error");
           }
         });
 
