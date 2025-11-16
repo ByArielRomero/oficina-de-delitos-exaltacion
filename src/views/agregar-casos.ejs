@@ -13,7 +13,32 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
     />
     <link rel="stylesheet" href="/css/style.css" />
+
   </head>
+ <style>
+  /* Alinear acciones a la derecha */
+.table td:last-child,
+.table th:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Scroll vertical más lindo en tablas dentro de modales */
+.tabla-scroll {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/* Opcional: scrollbar más fino */
+.tabla-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.tabla-scroll::-webkit-scrollbar-thumb {
+  background: #b8b8b8;
+  border-radius: 4px;
+}
+
+ </style>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
       <div class="container-fluid">
@@ -338,18 +363,23 @@
   
   </div>
 
-  <!-- MODAL GESTIONAR TIPOS DE CASO -->
+    <!-- MODAL GESTIONAR TIPOS DE CASO - FUNCIONA + ESTILO ORIGINAL -->
 <div class="modal fade" id="modalGestionarTiposCaso" tabindex="-1">
-  <div class="modal-dialog modal-sm">
+  <div  class="modal-dialog modal-md">
     <div class="modal-content">
+
+      <!-- HEADER (AGREGADO) -->
       <div class="modal-header">
         <h5 class="modal-title">
           <i class="bi bi-tags"></i> Gestionar Tipos de Caso
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
+
+      <!-- BODY -->
       <div class="modal-body">
-        <!-- Barra de búsqueda -->
+
+        <!-- BARRA DE BÚSQUEDA -->
         <div class="mb-3">
           <input
             type="text"
@@ -359,8 +389,8 @@
           />
         </div>
 
-        <!-- Tabla -->
-        <div id="listaTiposCaso" class="table-responsive">
+        <!-- TABLA -->
+        <div id="listaTiposCaso" class="table-responsive tabla-scroll" >
           <table class="table table-striped">
             <thead>
               <tr>
@@ -368,11 +398,12 @@
                 <th>Acciones</th>
               </tr>
             </thead>
-            <tbody id="tbodyTiposCaso"></tbody>
+            <tbody id="tbodyTiposCaso">
+           </tbody>
           </table>
         </div>
 
-        <!-- Form edición (oculto) -->
+        <!-- FORMULARIO EDICIÓN (OCULTO) -->
         <div id="formEdicionTipoCaso" class="mt-4" style="display: none">
           <h6>Editar Tipo</h6>
           <form id="editFormTipoCaso">
@@ -389,10 +420,14 @@
             </div>
           </form>
         </div>
+
       </div>
     </div>
   </div>
 </div>
+
+
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Para Swal en logout -->

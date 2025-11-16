@@ -643,6 +643,7 @@
         document.getElementById("editIdZona").value = id;
         document.querySelector('#editFormZona input[name="nombreZona"]').value =
           zona.nombre_zona;
+        document.getElementById("searchZonas").style.display = "none";
         document.getElementById("listaZonas").style.display = "none";
         document.getElementById("formEdicionZona").style.display = "block";
       }
@@ -654,23 +655,42 @@
       async function editarZonaSubmit(e) {
         e.preventDefault();
         const data = Object.fromEntries(new FormData(e.target).entries());
+
         try {
           const res = await fetch(`/zonas/${editingIdZona}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
           });
+
           const result = await res.json();
+
           if (result.success) {
-            Swal.fire("Éxito", result.message, "success").then(() => {
-              cancelarEdicionZona();
-              cargarZonas();
+            // CERRAR MODAL DE GESTIÓN
+            bootstrap.Modal.getInstance(
+              document.getElementById("modalGestionarZonas")
+            ).hide();
+
+            // RECARGAR ZONAS EN TODOS LOS SELECTS
+            await recargarZonasEnSelects();
+
+            // VOLVER A LISTA
+            cancelarEdicionZona();
+
+            // ÉXITO
+            await Swal.fire({
+              title: "¡Actualizado!",
+              text: result.message,
+              icon: "success",
+              timer: 1500,
+              showConfirmButton: false,
             });
           } else {
             Swal.fire("Error", result.message, "error");
           }
         } catch (err) {
-          Swal.fire("Error", "No se pudo actualizar", "error");
+          console.error("Error:", err);
+          Swal.fire("Error", "No se pudo actualizar la zona", "error");
         }
       }
       async function borrarZona(id) {
@@ -685,9 +705,22 @@
             try {
               const res = await fetch(`/zonas/${id}`, { method: "DELETE" });
               const data = await res.json();
+
               if (data.success) {
-                Swal.fire("Borrado", data.message, "success");
-                cargarZonas();
+                // RECARGAR ZONAS EN TODOS LOS SELECTS
+                await recargarZonasEnSelects();
+
+                // RECARGAR TABLA DE ZONAS
+                renderizarZonas(todasLasZonas);
+
+                // MENSAJE
+                await Swal.fire({
+                  title: "¡Eliminado!",
+                  text: data.message || "Zona borrada correctamente",
+                  icon: "success",
+                  timer: 1500,
+                  showConfirmButton: false,
+                });
               } else {
                 Swal.fire("Error", data.message, "error");
               }
@@ -809,7 +842,7 @@
         document.querySelector('#editFormPersona select[name="zona"]').value =
           persona.zona_id || "";
 
-        document.getElementById('searchPersonas').style.display = "none";  
+        document.getElementById("searchPersonas").style.display = "none";
         document.getElementById("listaPersonas").style.display = "none";
         document.getElementById("formEdicionPersona").style.display = "block";
       }
@@ -845,27 +878,92 @@
 
       async function borrarPersona(id) {
         const persona = todasLasPersonas.find((p) => p.id === id);
-        Swal.fire({
-          title: `¿Borrar ${persona.nombre} ${persona.apellido}?`,
+        if (!persona) return;
+
+        const result = await Swal.fire({
+          title: `¿Eliminar a ${persona.nombre} ${persona.apellido}?`,
           text: "Esta acción no se puede deshacer.",
           icon: "warning",
           showCancelButton: true,
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            try {
-              const res = await fetch(`/personas/${id}`, { method: "DELETE" });
-              const data = await res.json();
-              if (data.success) {
-                Swal.fire("Borrado", data.message, "success");
-                cargarPersonas(); // Recargar
-              } else {
-                Swal.fire("Error", data.message, "error");
-              }
-            } catch (err) {
-              Swal.fire("Error", "No se pudo borrar", "error");
-            }
-          }
+          confirmButtonText: "Sí, eliminar",
+          cancelButtonText: "Cancelar",
+          confirmButtonColor: "#d33",
         });
+
+        if (result.isConfirmed) {
+          try {
+            const res = await fetch(`/borrarPersona/${id}`, {
+              method: "DELETE",
+              credentials: "include", // ← IMPORTANTE: para que envíe la sesión
+            });
+
+            if (!res.ok) {
+              const error = await res
+                .json()
+                .catch(() => ({ message: "Error del servidor" }));
+              throw new Error(error.message || "No se pudo borrar");
+            }
+
+            const data = await res.json();
+
+            if (data.success) {
+              await Swal.fire({
+                title: "¡Eliminado!",
+                text: data.message || "Persona borrada correctamente",
+                icon: "success",
+                timer: 1800,
+                timerProgressBar: true,
+                showConfirmButton: false,
+              });
+              cargarPersonas(); // Recarga la lista
+            }
+          } catch (err) {
+            console.error("Error al borrar:", err);
+            Swal.fire("Error", err.message || "No se pudo eliminar", "error");
+          }
+        }
+      }
+
+      // ← NUEVO: RECARGAR ZONAS EN TODOS LOS SELECTS
+      async function recargarZonasEnSelects() {
+        try {
+          const res = await fetch("/zonas");
+          if (!res.ok) throw new Error("Error al cargar zonas");
+          const { zonas } = await res.json();
+
+          // 1. SELECT PRINCIPAL (formulario agregar persona)
+          const selectPrincipal = document.getElementById("zona");
+          const valorActual = selectPrincipal.value;
+          selectPrincipal.innerHTML =
+            '<option value="">Seleccione una zona</option>';
+          zonas.forEach((z) => {
+            const opt = new Option(z.nombre_zona, z.id_zona);
+            if (z.id_zona == valorActual) opt.selected = true;
+            selectPrincipal.add(opt);
+          });
+
+          // 2. SELECT EN MODAL DE EDICIÓN DE PERSONA
+          const selectEdicion = document.querySelector(
+            '#editFormPersona select[name="zona"]'
+          );
+          if (selectEdicion) {
+            const valorEdicion = selectEdicion.value;
+            selectEdicion.innerHTML = "";
+            zonas.forEach((z) => {
+              const opt = new Option(z.nombre_zona, z.id_zona);
+              if (z.id_zona == valorEdicion) opt.selected = true;
+              selectEdicion.add(opt);
+            });
+          }
+
+          // 3. ACTUALIZAR VARIABLE GLOBAL
+          todasLasZonas = zonas;
+
+          console.log("Zonas recargadas en todos los selects");
+        } catch (err) {
+          console.error("Error recargando zonas:", err);
+          Swal.fire("Error", "No se pudieron actualizar las zonas", "error");
+        }
       }
     </script>
 
@@ -909,18 +1007,18 @@
       }
     </script>
     <script>
-          // Limpia DNI y TELÉFONO automáticamente (solo números + longitud exacta)
-          document
-            .querySelectorAll('input[name="dni"], input[name="telefono"]')
-            .forEach((input) => {
-              input.addEventListener("input", function () {
-                // Borra todo lo que no sea número
-                this.value = this.value.replace(/\D/g, "");
-                // Limita la longitud según el campo
-                if (this.name === "dni") this.value = this.value.slice(0, 8); // DNI: máx 8
-                if (this.name === "telefono") this.value = this.value.slice(0, 10); // Tel: máx 10
-              });
-            });
+      // Limpia DNI y TELÉFONO automáticamente (solo números + longitud exacta)
+      document
+        .querySelectorAll('input[name="dni"], input[name="telefono"]')
+        .forEach((input) => {
+          input.addEventListener("input", function () {
+            // Borra todo lo que no sea número
+            this.value = this.value.replace(/\D/g, "");
+            // Limita la longitud según el campo
+            if (this.name === "dni") this.value = this.value.slice(0, 8); // DNI: máx 8
+            if (this.name === "telefono") this.value = this.value.slice(0, 10); // Tel: máx 10
+          });
+        });
     </script>
   </body>
 </html>
