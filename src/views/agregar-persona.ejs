@@ -809,6 +809,7 @@
         document.querySelector('#editFormPersona select[name="zona"]').value =
           persona.zona_id || "";
 
+        document.getElementById('searchPersonas').style.display = "none";  
         document.getElementById("listaPersonas").style.display = "none";
         document.getElementById("formEdicionPersona").style.display = "block";
       }
