@@ -692,8 +692,8 @@ function renderizarZonas(zonas) {
     tr.innerHTML = `
       <td>${z.nombre_zona}</td>
       <td>
-        <button class="btn btn-sm btn-warning" onclick="editarZona(${z.id_zona})">Editar</button>
-        <button class="btn btn-sm btn-danger" onclick="borrarZona(${z.id_zona})">Borrar</button>
+        <button class="btn btn-sm btn-warning" onclick="editarZona(${z.id_zona})">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="borrarZona(${z.id_zona})"><i class="bi bi-trash"></i></button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -816,8 +816,8 @@ function renderizarTiposCaso(tipos) {
     tr.innerHTML = `
       <td>${t.tipo_delito}</td>
       <td>
-        <button class="btn btn-sm btn-warning" onclick="editarTipoCaso(${t.id_delito})">Editar</button>
-        <button class="btn btn-sm btn-danger" onclick="borrarTipoCaso(${t.id_delito})">Borrar</button>
+        <button class="btn btn-sm btn-warning" onclick="editarTipoCaso(${t.id_delito})">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="borrarTipoCaso(${t.id_delito})"><i class="bi bi-trash"></i></button>
       </td>
     `;
     tbody.appendChild(tr);
