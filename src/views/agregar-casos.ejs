@@ -85,7 +85,14 @@
               aria-expanded="false"
             >
               <i class="bi bi-person-circle"></i>
-              <span id="currentUser">Usuario</span>
+                <span id="currentUser">
+                <% if (currentUser) { %> <%= currentUser.nombre ||
+                currentUser.username %>
+                <small class="text-light-50">
+                  (<%= Number(currentUser.rol) === 1 ? 'Admin' : 'Operador' %>)
+                </small>
+                <% } else { %> Usuario <% } %>
+              </span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
               <li>

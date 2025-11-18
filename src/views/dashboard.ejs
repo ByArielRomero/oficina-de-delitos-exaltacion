@@ -61,13 +61,15 @@
             >
               <i class="bi bi-person-circle"></i>
               <span id="currentUser">
-                <% if (currentUser) { %> <%= currentUser.nombre ||
-                currentUser.username %>
-                <small class="text-light-50">
-                  (<%= Number(currentUser.rol) === 1 ? 'Admin' : 'Operador' %>)
-                </small>
-                <% } else { %> Usuario <% } %>
-              </span>
+  <% if (currentUser) { %>
+    <%= currentUser.nombre %>
+    <small class="text-light-50">
+      (<%= currentUser.rol === 1 ? 'Admin' : 'Operador' %>)
+    </small>
+  <% } else { %>
+    Usuario
+  <% } %>
+</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
               <li>
@@ -239,25 +241,77 @@
           });
 
           // --- 2. Delitos por Sexo (Pie) ---
-          const labelsSexo = delitosSexo?.map((d) => d.genero) || [];
-          const dataSexo = delitosSexo?.map((d) => d.total) || [];
+          // --- 2. Delitos por Sexo (Pie) - CORREGIDO Y LIMPIO ---
+let labelsSexo = [];
+let dataSexo = [];
+let coloresSexo = [];
 
-          new Chart(chartDelitosSexoEl.getContext("2d"), {
-            type: "pie",
-            data: {
-              labels: labelsSexo,
-              datasets: [
-                {
-                  data: dataSexo,
-                  backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0"],
-                },
-              ],
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-            },
-          });
+// Procesamos los datos para agrupar todo lo que no sea Masculino/Femenino en "Otro"
+const mapaGeneros = {};
+
+delitosSexo.forEach(item => {
+  let genero = item.genero?.trim();
+
+  // Si está vacío, es null, "null", "Otro", "otro", etc → lo contamos como "Otro"
+  if (!genero || genero === "null" || genero === "" || genero.toLowerCase() === "otro") {
+    genero = "Otro";
+  }
+
+  // Sumamos los totals
+  if (!mapaGeneros[genero]) {
+    mapaGeneros[genero] = 0;
+  }
+  mapaGeneros[genero] += parseInt(item.total);
+});
+
+// Convertimos el objeto en arrays limpios (máximo 3 categorías)
+Object.keys(mapaGeneros).forEach(genero => {
+  labelsSexo.push(genero);
+  dataSexo.push(mapaGeneros[genero]);
+});
+
+// Asignamos colores fijos: Femenino = rosa, Masculino = azul, Otro = amarillo
+if (labelsSexo.includes("Femenino")) coloresSexo[labelsSexo.indexOf("Femenino")] = "#FF6384";
+if (labelsSexo.includes("Masculino")) coloresSexo[labelsSexo.indexOf("Masculino")] = "#36A2EB";
+if (labelsSexo.includes("Otro")) coloresSexo[labelsSexo.indexOf("Otro")] = "#FFCE56";
+
+// Si falta alguno, lo agregamos con 0 para que siempre haya 3 colores
+if (!labelsSexo.includes("Femenino")) { labelsSexo.push("Femenino"); dataSexo.push(0); coloresSexo.push("#FF6384"); }
+if (!labelsSexo.includes("Masculino")) { labelsSexo.push("Masculino"); dataSexo.push(0); coloresSexo.push("#36A2EB"); }
+if (!labelsSexo.includes("Otro")) { labelsSexo.push("Otro"); dataSexo.push(0); coloresSexo.push("#FFCE56"); }
+
+// Creamos el gráfico con solo 3 porciones máximo
+new Chart(chartDelitosSexoEl.getContext("2d"), {
+  type: "pie",
+  data: {
+    labels: labelsSexo,
+    datasets: [{
+      data: dataSexo,
+      backgroundColor: coloresSexo,
+      borderColor: "#fff",
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { 
+      legend: { 
+        position: "top"   // ← Cambiado de "bottom" a "top"
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            let label = context.label || '';
+            if (label) label += ': ';
+            label += context.parsed + ' casos';
+            return label;
+          }
+        }
+      }
+    }
+  }
+});
 
           // --- 3. Tipos de Delitos (Doughnut) ---
           const labelsTipos = tiposDelito?.map((d) => d.tipo_delito) || [];

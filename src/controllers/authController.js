@@ -22,10 +22,16 @@ const authController = {
         [name, passwordHash, rol]
       );
 
-      return res.render("register", { alert: "success",currentUser: req.user || null});
+      return res.render("register", {
+        alert: "success",
+        currentUser: req.user || null,
+      });
     } catch (error) {
       console.error("Error al registrar usuario:", error);
-      return res.render("register", { alert: "error" ,currentUser: req.user || null});
+      return res.render("register", {
+        alert: "error",
+        currentUser: req.user || null,
+      });
     }
   },
 
@@ -61,7 +67,8 @@ const authController = {
         {
           id: user.id_usuario,
           name: user.nombre_usuario,
-          rol: user.id_rol, // 👈 incluimos el rol
+          nombre: user.nombre_completo || user.nombre_usuario, // ← AQUÍ ESTÁ LA CLAVE
+          rol: user.id_rol,
         },
         process.env.JWT_SECRET,
         { expiresIn: "30m" }

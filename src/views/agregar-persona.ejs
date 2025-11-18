@@ -65,13 +65,16 @@
               aria-expanded="false"
             >
               <i class="bi bi-person-circle"></i>
-              <span id="currentUser">
-                <% if (currentUser) { %> <%= currentUser.name %>
-                <small class="text-light-50">
-                  (<%= currentUser.rol === 1 ? 'Admin' : 'Operador' %>)
-                </small>
-                <% } else { %> Usuario <% } %>
-              </span>
+                            <span id="currentUser">
+  <% if (currentUser) { %>
+    <%= currentUser.nombre %>
+    <small class="text-light-50">
+      (<%= currentUser.rol === 1 ? 'Admin' : 'Operador' %>)
+    </small>
+  <% } else { %>
+    Usuario
+  <% } %>
+</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
               <li>
@@ -203,6 +206,7 @@
                       <option value="">Seleccione un género</option>
                       <option value="Masculino">Masculino</option>
                       <option value="Femenino">Femenino</option>
+                      <option value="Otro">Otro</option>
                     </select>
                   </div>
                 </div>
@@ -379,28 +383,31 @@
     <div class="modal fade" id="modalListaPersonas" tabindex="-1">
       <div class="modal-dialog modal-xl">
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header bg-secundary text-white">
             <h5 class="modal-title">
               <i class="bi bi-people"></i> Gestionar Personas
             </h5>
             <button
               type="button"
-              class="btn-close"
+              class="btn-close btn-close-white"
               data-bs-dismiss="modal"
             ></button>
           </div>
           <div class="modal-body">
+            <!-- BARRA DE BÚSQUEDA -->
             <div class="mb-3">
               <input
                 type="text"
                 class="form-control"
                 id="searchPersonas"
-                placeholder="Buscar por nombre, apellido o DNI..."
+                placeholder="Buscar por nombre, apellido, DNI o teléfono..."
               />
             </div>
-            <div id="listaPersonas" class="table-responsive">
-              <table class="table table-striped">
-                <thead>
+
+            <!-- TABLA -->
+            <div class="table-responsive">
+              <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
                   <tr>
                     <th>Nombre</th>
                     <th>Apellido</th>
@@ -413,16 +420,33 @@
                   </tr>
                 </thead>
                 <tbody id="tbodyPersonas">
-                  <!-- Se llena dinámicamente con JS -->
+                  <!-- Se llena con JS -->
                 </tbody>
               </table>
             </div>
-            <div id="formEdicionPersona" class="mt-4" style="display: none">
-              <h6>Editar Persona</h6>
+
+            <!-- PAGINACIÓN -->
+            <div class="d-flex justify-content-center mt-4">
+              <nav aria-label="Paginación de personas">
+                <ul class="pagination" id="paginacionPersonas">
+                  <!-- Generado por JS -->
+                </ul>
+              </nav>
+            </div>
+
+            <!-- FORMULARIO DE EDICIÓN (OCULTO) -->
+            <div
+              id="formEdicionPersona"
+              class="mt-5 border-top pt-4"
+              style="display: none"
+            >
+              <h5 class="text-primary mb-4">
+                <i class="bi bi-pencil-square"></i> Editar Persona
+              </h5>
               <form id="editFormPersona">
                 <input type="hidden" id="editIdPersona" name="id" />
-                <div class="row">
-                  <div class="col-md-6 mb-3">
+                <div class="row g-3">
+                  <div class="col-md-6">
                     <label class="form-label">Nombre</label>
                     <input
                       type="text"
@@ -431,7 +455,7 @@
                       required
                     />
                   </div>
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-6">
                     <label class="form-label">Apellido</label>
                     <input
                       type="text"
@@ -440,9 +464,7 @@
                       required
                     />
                   </div>
-                </div>
-                <div class="row">
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-6">
                     <label class="form-label">DNI</label>
                     <input
                       type="text"
@@ -451,7 +473,7 @@
                       required
                     />
                   </div>
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-6">
                     <label class="form-label">Teléfono</label>
                     <input
                       type="tel"
@@ -460,9 +482,7 @@
                       required
                     />
                   </div>
-                </div>
-                <div class="row">
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-6">
                     <label class="form-label">Dirección</label>
                     <input
                       type="text"
@@ -471,34 +491,32 @@
                       required
                     />
                   </div>
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-6">
                     <label class="form-label">Género</label>
                     <select class="form-select" name="genero" required>
                       <option value="Masculino">Masculino</option>
                       <option value="Femenino">Femenino</option>
+                      <option value="Otro">Otro</option>
                     </select>
                   </div>
-                </div>
-                <div class="row">
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-6">
                     <label class="form-label">Zona</label>
                     <select class="form-select" name="zona" required>
                       <% zonas.forEach(z => { %>
                       <option value="<%= z.id_zona %>">
                         <%= z.nombre_zona %>
                       </option>
-                      <% }); %>
-                      <!-- Se poblará con JS usando las zonas del template -->
+                      <% }) %>
                     </select>
                   </div>
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-6">
                     <label class="form-label">Email</label>
                     <input type="email" name="email" class="form-control" />
                   </div>
                 </div>
-                <div class="d-grid gap-2">
-                  <button type="submit" class="btn btn-primary">
-                    Actualizar
+                <div class="d-flex gap-2 mt-4">
+                  <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-check2"></i> Guardar Cambios
                   </button>
                   <button
                     type="button"
@@ -510,6 +528,114 @@
                 </div>
               </form>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL PARA EDITAR PERSONA (NUEVO Y SEPARADO) -->
+    <div class="modal fade" id="modalEditarPersona" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title">
+              <i class="bi bi-pencil-square"></i> Editar Persona
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="formEditarPersonaReal">
+              <input type="hidden" id="idPersonaEditar" />
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label>Nombre *</label
+                  ><input
+                    type="text"
+                    name="nombre"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label>Apellido *</label
+                  ><input
+                    type="text"
+                    name="apellido"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label>DNI *</label
+                  ><input
+                    type="text"
+                    name="dni"
+                    class="form-control"
+                    maxlength="8"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label>Teléfono *</label
+                  ><input
+                    type="tel"
+                    name="telefono"
+                    class="form-control"
+                    maxlength="10"
+                    required
+                  />
+                </div>
+                <div class="col-12">
+                  <label>Dirección *</label
+                  ><input
+                    type="text"
+                    name="direccion"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label>Género *</label>
+                  <select name="genero" class="form-select" required>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Femenino">Femenino</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label>Zona *</label>
+                  <select name="zona" class="form-select" required>
+                    <% zonas.forEach(z => { %>
+                    <option value="<%= z.id_zona %>">
+                      <%= z.nombre_zona %>
+                    </option>
+                    <% }) %>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label>Email (opcional)</label
+                  ><input type="email" name="email" class="form-control" />
+                </div>
+              </div>
+
+              <div class="mt-4 d-flex justify-content-end gap-2">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                  Guardar Cambios
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -732,26 +858,17 @@
       }
 
       // NUEVO: Gestión de personas
+      const ITEMS_POR_PAGINA = 10;
       let todasLasPersonas = [];
-      let modalPersonas = null;
-      let editingId = null;
+      let paginaActualPersonas = 1;
 
       document.addEventListener("DOMContentLoaded", () => {
-        modalPersonas = new bootstrap.Modal(
-          document.getElementById("modalListaPersonas")
-        );
-
-        // Cargar lista al abrir modal
         document
           .getElementById("modalListaPersonas")
           .addEventListener("show.bs.modal", cargarPersonas);
-
-        // Event listener para búsqueda
         document
           .getElementById("searchPersonas")
-          .addEventListener("input", filtrarPersonas);
-
-        // Form de edición
+          .addEventListener("input", aplicarFiltrosYPaginaPersonas);
         document
           .getElementById("editFormPersona")
           .addEventListener("submit", editarPersonaSubmit);
@@ -762,39 +879,64 @@
           const res = await fetch("/personas");
           const { personas } = await res.json();
           todasLasPersonas = personas;
-          renderizarPersonas(personas);
+          aplicarFiltrosYPaginaPersonas();
         } catch (err) {
           Swal.fire("Error", "No se pudieron cargar las personas", "error");
         }
       }
+
+      function aplicarFiltrosYPaginaPersonas() {
+        const search = document
+          .getElementById("searchPersonas")
+          .value.toLowerCase()
+          .trim();
+        let filasVisibles = todasLasPersonas.filter((p) => {
+          return (
+            p.nombre.toLowerCase().includes(search) ||
+            p.apellido.toLowerCase().includes(search) ||
+            p.dni.includes(search) ||
+            (p.telefono && p.telefono.includes(search))
+          );
+        });
+
+        const totalPaginas = Math.ceil(filasVisibles.length / ITEMS_POR_PAGINA);
+        paginaActualPersonas = 1;
+
+        renderizarPersonas(filasVisibles.slice(0, ITEMS_POR_PAGINA));
+        generarPaginacionPersonas(totalPaginas, filasVisibles);
+      }
+
       function renderizarPersonas(personas) {
         const tbody = document.getElementById("tbodyPersonas");
         tbody.innerHTML = "";
 
-        // RECIBE `user` desde el servidor (lo pasamos en el controlador)
-        const user = window.currentUser; // <-- Lo definimos abajo
+        if (personas.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No se encontraron personas</td></tr>`;
+          return;
+        }
 
         personas.forEach((p) => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-      <td>${p.nombre}</td>
+      <td><strong>${p.nombre}</strong></td>
       <td>${p.apellido}</td>
       <td>${p.dni}</td>
-      <td>${p.telefono}</td>
+      <td>${p.telefono || "-"}</td>
       <td>${p.zona || "Sin zona"}</td>
       <td>${p.email || ""}</td>
       <td>${p.genero}</td>
       <td>
-        <button class="btn btn-sm btn-warning" onclick="editarPersona(${p.id})">
-        ✏️   
-        </button>
+        <button class="btn btn-warning btn-sm" onclick="abrirModalEditar(${
+          p.id
+        })">
+  <i class="bi bi-pencil"></i>
+</button>
         ${
-          user && user.rol === 1
+          window.currentUser && window.currentUser.rol === 1
             ? `
-          <button class="btn btn-sm btn-danger" onclick="borrarPersona(${p.id})">
-            <i class="bi bi-trash"></i>
-          </button>
-        `
+        <button class="btn btn-danger btn-sm" onclick="borrarPersona(${p.id})">
+          <i class="bi bi-trash"></i>
+        </button>`
             : ""
         }
       </td>
@@ -803,48 +945,84 @@
         });
       }
 
-      function filtrarPersonas() {
-        const termino = document
-          .getElementById("searchPersonas")
-          .value.toLowerCase();
-        const filtradas = todasLasPersonas.filter(
-          (p) =>
-            p.nombre.toLowerCase().includes(termino) ||
-            p.apellido.toLowerCase().includes(termino) ||
-            p.dni.includes(termino)
-        );
-        renderizarPersonas(filtradas);
+      function generarPaginacionPersonas(totalPaginas, filasVisibles) {
+        const paginacion = document.getElementById("paginacionPersonas");
+        paginacion.innerHTML = "";
+
+        if (totalPaginas <= 1) return;
+
+        // Anterior
+        paginacion.innerHTML += `
+    <li class="page-item ${paginaActualPersonas === 1 ? "disabled" : ""}">
+      <a class="page-link" href="#" onclick="cambiarPaginaPersonas(${
+        paginaActualPersonas - 1
+      }, event)">Anterior</a>
+    </li>`;
+
+        // Números
+        for (let i = 1; i <= totalPaginas; i++) {
+          paginacion.innerHTML += `
+      <li class="page-item ${i === paginaActualPersonas ? "active" : ""}">
+        <a class="page-link" href="#" onclick="cambiarPaginaPersonas(${i}, event)">${i}</a>
+      </li>`;
+        }
+
+        // Siguiente
+        paginacion.innerHTML += `
+    <li class="page-item ${
+      paginaActualPersonas === totalPaginas ? "disabled" : ""
+    }">
+      <a class="page-link" href="#" onclick="cambiarPaginaPersonas(${
+        paginaActualPersonas + 1
+      }, event)">Siguiente</a>
+    </li>`;
       }
 
-      async function editarPersona(id) {
-        const persona = todasLasPersonas.find((p) => p.id === id);
-        if (!persona) return;
+      window.cambiarPaginaPersonas = function (pag, event) {
+        event.preventDefault();
+        if (
+          pag < 1 ||
+          pag > Math.ceil(todasLasPersonas.length / ITEMS_POR_PAGINA)
+        )
+          return;
 
-        editingId = id;
-        document.getElementById("editIdPersona").value = id;
-        document.querySelector('#editFormPersona input[name="nombre"]').value =
-          persona.nombre;
-        document.querySelector(
-          '#editFormPersona input[name="apellido"]'
-        ).value = persona.apellido;
-        document.querySelector('#editFormPersona input[name="dni"]').value =
-          persona.dni;
-        document.querySelector(
-          '#editFormPersona input[name="telefono"]'
-        ).value = persona.telefono;
-        document.querySelector(
-          '#editFormPersona input[name="direccion"]'
-        ).value = persona.direccion || "";
-        document.querySelector('#editFormPersona input[name="email"]').value =
-          persona.email || "";
-        document.querySelector('#editFormPersona select[name="genero"]').value =
-          persona.genero;
-        document.querySelector('#editFormPersona select[name="zona"]').value =
-          persona.zona_id || "";
+        paginaActualPersonas = pag;
+        const search = document
+          .getElementById("searchPersonas")
+          .value.toLowerCase()
+          .trim();
+        let filasVisibles = todasLasPersonas.filter((p) => {
+          return (
+            p.nombre.toLowerCase().includes(search) ||
+            p.apellido.toLowerCase().includes(search) ||
+            p.dni.includes(search) ||
+            (p.telefono && p.telefono.includes(search))
+          );
+        });
 
-        document.getElementById("searchPersonas").style.display = "none";
-        document.getElementById("listaPersonas").style.display = "none";
-        document.getElementById("formEdicionPersona").style.display = "block";
+        const inicio = (pag - 1) * ITEMS_POR_PAGINA;
+        const fin = inicio + ITEMS_POR_PAGINA;
+
+        renderizarPersonas(filasVisibles.slice(inicio, fin));
+        generarPaginacionPersonas(
+          Math.ceil(filasVisibles.length / ITEMS_POR_PAGINA),
+          filasVisibles
+        );
+      };
+
+      // FUNCIÓN CANCELAR EDICIÓN (CORREGIDA)
+      function cancelarEdicion() {
+        // VOLVER A MOSTRAR todo
+        document.getElementById("searchPersonas").style.display = "block";
+        document.querySelector(".table-responsive").style.display = "block";
+        document
+          .querySelector("#paginacionPersonas")
+          .closest(".d-flex").style.display = "flex";
+
+        // OCULTAR formulario
+        document.getElementById("formEdicionPersona").style.display = "none";
+
+        editingId = null;
       }
 
       function cancelarEdicion() {
@@ -1018,6 +1196,84 @@
             if (this.name === "dni") this.value = this.value.slice(0, 8); // DNI: máx 8
             if (this.name === "telefono") this.value = this.value.slice(0, 10); // Tel: máx 10
           });
+        });
+
+      // ABRIR MODAL DE EDICIÓN CON DATOS
+      window.abrirModalEditar = function (id) {
+        const persona = todasLasPersonas.find((p) => p.id === id);
+        if (!persona) return;
+
+        // ← NUEVA LÍNEA: CERRAR EL MODAL DE LISTA DE PERSONAS
+        bootstrap.Modal.getInstance(
+          document.getElementById("modalListaPersonas")
+        )?.hide();
+
+        // Rellenar los campos
+        document.getElementById("idPersonaEditar").value = persona.id;
+        document.querySelector(
+          '#formEditarPersonaReal input[name="nombre"]'
+        ).value = persona.nombre;
+        document.querySelector(
+          '#formEditarPersonaReal input[name="apellido"]'
+        ).value = persona.apellido;
+        document.querySelector(
+          '#formEditarPersonaReal input[name="dni"]'
+        ).value = persona.dni;
+        document.querySelector(
+          '#formEditarPersonaReal input[name="telefono"]'
+        ).value = persona.telefono || "";
+        document.querySelector(
+          '#formEditarPersonaReal input[name="direccion"]'
+        ).value = persona.direccion || "";
+        document.querySelector(
+          '#formEditarPersonaReal input[name="email"]'
+        ).value = persona.email || "";
+        document.querySelector(
+          '#formEditarPersonaReal select[name="genero"]'
+        ).value = persona.genero;
+        document.querySelector(
+          '#formEditarPersonaReal select[name="zona"]'
+        ).value = persona.zona_id || persona.zona || "";
+
+        // Abrir el modal de edición
+        new bootstrap.Modal(
+          document.getElementById("modalEditarPersona")
+        ).show();
+      };
+
+      // GUARDAR EDICIÓN
+      document
+        .getElementById("formEditarPersonaReal")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const id = document.getElementById("idPersonaEditar").value;
+          const data = Object.fromEntries(new FormData(this));
+
+          try {
+            const res = await fetch(`/personas/${id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
+            });
+            const result = await res.json();
+
+            if (result.success) {
+              Swal.fire("¡Listo!", "Persona actualizada", "success");
+              bootstrap.Modal.getInstance(
+                document.getElementById("modalEditarPersona")
+              ).hide();
+              cargarPersonas(); // recarga la tabla
+            } else {
+              Swal.fire(
+                "Error",
+                result.message || "No se pudo guardar",
+                "error"
+              );
+            }
+          } catch (err) {
+            console.error(err);
+            Swal.fire("Error", "No se pudo conectar", "error");
+          }
         });
     </script>
   </body>

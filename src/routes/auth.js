@@ -17,10 +17,34 @@ router.get("/login", (req, res) => {
 });
 
 // REGISTER → privada
-router.get("/register", protect, (req, res) => {
-  res.render("register", { 
-    alert: null, 
-    currentUser: res.locals.currentUser || req.user || null 
+// REGISTER → privada (para todos los usuarios logueados)
+router.get("/register", protect, async (req, res) => {
+  // Solo si es admin, cargamos la lista de usuarios
+  if (req.user && Number(req.user.rol || req.user.id_rol) === 1) {
+    try {
+      const [usuarios] = await pool.query(
+        "SELECT id_usuario, nombre_usuario, id_rol FROM usuario ORDER BY id_usuario"
+      );
+      return res.render("register", {
+        currentUser: req.user,
+        usuarios,
+        alert: req.query.alert || null
+      });
+    } catch (error) {
+      console.error("Error al cargar usuarios:", error);
+      return res.render("register", {
+        currentUser: req.user,
+        usuarios: [],
+        alert: "error"
+      });
+    }
+  }
+
+  // Si NO es admin (operador o cualquier otro), renderizamos sin usuarios
+  res.render("register", {
+    currentUser: req.user,
+    usuarios: [],           // ← Esto evita el error "usuarios is not defined"
+    alert: req.query.alert || null
   });
 });
 
