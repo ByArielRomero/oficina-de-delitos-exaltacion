@@ -169,12 +169,12 @@
                       type="tel"
                       name="telefono"
                       class="form-control"
-                      placeholder="10 digitos"
+                      placeholder="8 a 15 dígitos"
                       required
-                      minlength="10"
-                      maxlength="10"
-                      pattern="\d{10}"
-                      title="Solo números, de 10 dígitos"
+                      minlength="8"
+                      maxlength="15"
+                      pattern="\d{8,15}"
+                      title="Solo números, de 8 a 15 dígitos"
                       id="telefono"
                     />
                     <small class="text-muted">Ej: 1132323232 ,sin 0 y 15</small>
@@ -929,8 +929,8 @@
         <button class="btn btn-warning btn-sm" onclick="abrirModalEditar(${
           p.id
         })">
-  <i class="bi bi-pencil"></i>
-</button>
+           ✏️
+         </button>
         ${
           window.currentUser && window.currentUser.rol === 1
             ? `
@@ -1194,7 +1194,7 @@
             this.value = this.value.replace(/\D/g, "");
             // Limita la longitud según el campo
             if (this.name === "dni") this.value = this.value.slice(0, 8); // DNI: máx 8
-            if (this.name === "telefono") this.value = this.value.slice(0, 10); // Tel: máx 10
+            if (this.name === "telefono") this.value = this.value.slice(0, 15); // Tel: máx 15
           });
         });
 

@@ -34,7 +34,7 @@ export const crearPersona = async (req, res) => {
     if (!/^\d{8}$/.test(dni)) {
       return res.status(400).json({ success: false, message: "DNI: utilizar 8 digitos" });
     }
-     if (!/^\d{10}$/.test(telefono)) {
+     if (!/^\d{8,15}$/.test(telefono)) {
       return res.status(400).json({ success: false, message: "telefono: utilizar 10 digitos" });
     }
         if (email && !/^\S+@\S+\.\S+$/.test(email)) {
@@ -251,8 +251,8 @@ export const actualizarPersona = async (req, res) => {
       return res.status(400).json({ success: false, message: "DNI: utilizar 8 digitos" });
     }
     
-     if (!/^\d{10}$/.test(telefono)) {
-      return res.status(400).json({ success: false, message: "telefono: utilizar 10 digitos" });
+     if (!/^\d{8,15}$/.test(telefono)) {
+      return res.status(400).json({ success: false, message: "telefono: utilizar 8 a 15 digitos" });
     }
 
     if (email && !/^\S+@\S+\.\S+$/.test(email)) {
