@@ -737,6 +737,12 @@
       function renderizarZonas(zonas) {
         const tbody = document.getElementById("tbodyZonas");
         tbody.innerHTML = "";
+
+        if (zonas.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No hay zonas disponibles, cargue una.</td></tr>';
+          return;
+        }
+
         zonas.forEach((z) => {
           const tr = document.createElement("tr");
           tr.innerHTML = `

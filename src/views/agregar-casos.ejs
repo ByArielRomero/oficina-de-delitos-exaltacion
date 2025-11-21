@@ -146,7 +146,7 @@
                  </select>
                  <small class="text-muted">
                    Si la zona no está en la lista, 
-                   <a href="#" data-bs-toggle="modal" data-bs-target="#modalAgregarZona">
+                   <a href="/agregar-zona" data-bs-toggle="modal" data-bs-target="#modalAgregarZona">
                     agréguela aquí
                    </a>
                  </small>
@@ -694,6 +694,12 @@ async function cargarZonas() {
 function renderizarZonas(zonas) {
   const tbody = document.getElementById("tbodyZonas");
   tbody.innerHTML = "";
+  
+  if (zonas.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No hay zonas disponibles, cargue una.</td></tr>';
+    return;
+  }
+
   zonas.forEach(z => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -856,18 +862,24 @@ function cancelarEdicionTipoCaso() {
 async function editarTipoCasoSubmit(e) {
   e.preventDefault();
   const data = Object.fromEntries(new FormData(e.target));
-  const res = await fetch(`/api/casos/delito/${editingIdTipoCaso}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  const result = await res.json();
-  if (result.success) {
-    Swal.fire("Éxito", "Tipo actualizado", "success").then(() => {
-      cancelarEdicionTipoCaso();
-      cargarTiposCaso();
-      actualizarSelectTiposCaso();
+  try {
+    const res = await fetch(`/api/casos/delito/${editingIdTipoCaso}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
+    const result = await res.json();
+    if (result.success) {
+      Swal.fire("Éxito", "Tipo actualizado", "success").then(() => {
+        cancelarEdicionTipoCaso();
+        cargarTiposCaso();
+        actualizarSelectTiposCaso();
+      });
+    } else {
+      Swal.fire("Error", result.message, "error");
+    }
+  } catch (err) {
+    Swal.fire("Error", "No se pudo actualizar", "error");
   }
 }
 
