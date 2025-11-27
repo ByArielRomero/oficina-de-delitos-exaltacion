@@ -1,189 +1,272 @@
 <!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Configuración - OVD</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
-    />
-    <link rel="stylesheet" href="/css/style.css" />
-  </head>
-  <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="dashboard.html">
-          <i class="bi bi-shield-check"></i> OVD - Exaltación de la Cruz
-        </a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav me-auto">
-            <li class="nav-item">
-              <a class="nav-link" href="/dashboard"
-                ><i class="bi bi-house-door"></i> Dashboard</a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/agregar-persona"
-                ><i class="bi bi-person-plus"></i> Agregar Persona</a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/agregar-caso"
-                ><i class="bi bi-file-earmark-plus"></i> Agregar Caso</a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/lista-casos"
-                ><i class="bi bi-list-ul"></i> Lista de Casos</a
-              >
-            </li>
-          </ul>
-          <div class="dropdown me-3">
-            <button
-              class="btn btn-outline-light dropdown-toggle"
-              type="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              <i class="bi bi-person-circle"></i>
-              <span id="currentUser">Usuario</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li>
-                <a class="dropdown-item" href="/register"
-                  ><i class="bi bi-gear"></i> Configuración</a
-                >
-              </li>
-              <li><hr class="dropdown-divider" /></li>
-              <li>
-                <button class="dropdown-item text-danger" onclick="logout()">
-                  <i class="bi bi-box-arrow-right"></i> Cerrar sesión
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </nav>
+<html lang="es" data-current-user="<%= JSON.stringify(currentUser || null) %>">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuración - OVD</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .btn-gestion { min-width: 240px; font-size: 1.1rem; }
+    body { background-color: #f8f9fa; }
+    .modal-backdrop.show { opacity: 0.7; }
+    #modalEditarUsuario { z-index: 1060 !important; }
+  </style>
+</head>
+<body>
 
-    <!-- Contenido -->
-    <div class="container py-4">
-      <div class="row">
-        <div class="col-lg-6 mx-auto">
-          <h2 class="page-title mb-4">Configuración del Sistema</h2>
-          <div class="card">
-            <div class="card-header">
-              <h5 class="mb-0">
-                <i class="bi bi-gear"></i> Opciones Generales
-              </h5>
-            </div>
-            <div class="card-body d-flex justify-content-between">
-              <button class="btn btn-danger" onclick="logout()">
-                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
-              </button>
-              <button
-                class="btn btn-success"
-                data-bs-toggle="modal"
-                data-bs-target="#modalAgregarUsuario"
-              >
-                <i class="bi bi-person-plus"></i> Agregar Usuario
-              </button>
-            </div>
-          </div>
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/dashboard"><i class="bi bi-shield-check"></i> OVD - Exaltación de la Cruz</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-house-door"></i> Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="/agregar-persona"><i class="bi bi-person-plus"></i> Agregar Persona</a></li>
+          <li class="nav-item"><a class="nav-link" href="/agregar-caso"><i class="bi bi-file-earmark-plus"></i> Agregar Caso</a></li>
+          <li class="nav-item"><a class="nav-link" href="/lista-casos"><i class="bi bi-list-ul"></i> Lista de Casos</a></li>
+        </ul>
+        <div class="dropdown me-3">
+          <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i>
+            <span id="currentUser">
+              <%= currentUser?.nombre || currentUser?.username || 'Usuario' %>
+              <small class="text-light-50">(<%= Number(currentUser?.rol || currentUser?.id_rol) === 1 ? 'Admin' : 'Operador' %>)</small>
+            </span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item active" href="/register"><i class="bi bi-gear"></i> Configuración</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><button class="dropdown-item text-danger" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</button></li>
+          </ul>
         </div>
       </div>
     </div>
+  </nav>
 
-    <!-- Modal Agregar Usuario -->
-    <div class="modal fade" id="modalAgregarUsuario" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Agregar Nuevo Usuario</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <h2 class="text-center mb-5 text-primary"><i class="bi bi-gear-wide-connected"></i> Configuración del Sistema</h2>
+        <div class="d-grid gap-4">
+          <button class="btn btn-danger btn-lg" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</button>
+
+          <% if (currentUser && Number(currentUser.rol || currentUser.id_rol) === 1) { %>
+            <button class="btn btn-success btn-lg btn-gestion" data-bs-toggle="modal" data-bs-target="#modalAgregar">
+              <i class="bi bi-person-plus"></i> Agregar Usuario
+            </button>
+            <button class="btn btn-primary btn-lg btn-gestion" data-bs-toggle="modal" data-bs-target="#modalGestion">
+              <i class="bi bi-people"></i> Gestionar Usuarios
+            </button>
+          <% } else { %>
+            <div class="alert alert-info text-center">
+              <i class="bi bi-info-circle"></i> Solo los administradores pueden gestionar usuarios.
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TODOS LOS MODALES FUERA DEL IF (así siempre existen) ==================== -->
+
+  <!-- MODAL AGREGAR USUARIO -->
+  <div class="modal fade" id="modalAgregar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <form action="/register/crear" method="POST">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title"><i class="bi bi-person-plus"></i> Agregar Nuevo Usuario</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <form id="formUsuario" action="/register" method="post">
+            <div class="mb-3">
+              <label class="form-label fw-bold">Nombre de usuario</label>
+              <input type="text" name="name" class="form-control form-control-lg" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Contraseña</label>
+              <input type="password" name="password" class="form-control form-control-lg" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Rol</label>
+              <select name="rol" class="form-select" required>
+                <option value="2">Operador</option>
+                <option value="1">Administrador</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success"><i class="bi bi-check2"></i> Crear Usuario</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR USUARIO -->
+  <div class="modal fade" id="modalEditarUsuario" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <form id="formEditarReal" action="" method="POST">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Editar Usuario</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label fw-bold">Nombre de usuario</label>
+              <input type="text" name="name" class="form-control form-control-lg" id="editNombre" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Rol</label>
+              <select name="rol" class="form-select" id="editRol">
+                <option value="2">Operador</option>
+                <option value="1">Administrador</option>
+              </select>
+            </div>
+            <hr>
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" id="cambiarPassword">
+              <label class="form-check-label text-primary fw-bold" for="cambiarPassword">Cambiar contraseña</label>
+            </div>
+            <div id="campoPassword" style="display:none;">
               <div class="mb-3">
-                <label for="nuevoUsername" class="form-label"
-                  >Nombre de Usuario</label
-                >
-                <input
-                  type="text"
-                  name="name"
-                  class="form-control"
-                  id="name"
-                  required
-                />
+                <label class="form-label">Nueva contraseña</label>
+                <input type="password" name="password" class="form-control" id="editPassword">
               </div>
-              <div class="mb-3">
-                <label for="nuevoPassword" class="form-label">Contraseña</label>
-                <input
-                  type="password"
-                  name="password"
-                  class="form-control"
-                  id="password"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Rol del Usuario</label>
-                <select class="form-select" name="rol" id="rol" required>
-                  <option value="2" selected>Operador</option>
-                  <option value="1">Administrador</option>
-                </select>
-              </div>
-              <a href="/" type="button" class="btn w-100">
-                <i class="bi bi-save"></i> Cancelar
-              </a>
-              <button type="submit" class="btn btn-primary w-100">
-                <i class="bi bi-save"></i> Crear Usuario
-              </button>
-            </form>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL GESTIONAR USUARIOS -->
+  <div class="modal fade" id="modalGestion" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="bi bi-people"></i> Gestionar Usuarios</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-dark">
+                <tr><th>ID</th><th>Usuario</th><th>Rol</th><th>Acciones</th></tr>
+              </thead>
+              <tbody>
+                <% usuarios.forEach(u => { %>
+                <tr>
+                  <td><%= u.id_usuario %></td>
+                  <td><strong><%= u.nombre_usuario %></strong></td>
+                  <td><span class="badge <%= u.id_rol === 1 ? 'bg-danger' : 'bg-primary' %>"><%= u.id_rol === 1 ? 'Administrador' : 'Operador' %></span></td>
+                  <td>
+                    <button class="btn btn-warning btn-sm btn-edit"
+                      data-id="<%= u.id_usuario %>"
+                      data-nombre="<%= encodeURIComponent(u.nombre_usuario) %>"
+                      data-rol="<%= u.id_rol %>">Editar</button>
+                    <% if (u.id_usuario !== currentUser.id) { %>
+                      <form action="/register/eliminar/<%= u.id_usuario %>" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                          onclick="return confirm('¿Eliminar permanentemente a <%= u.nombre_usuario %>?')">Eliminar</button>
+                      </form>
+                    <% } else { %>
+                      <span class="text-muted small">Tú</span>
+                    <% } %>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  
-        <script>
-async function logout() {
-  try {
-    const response = await fetch("/logout", {
-      method: "POST",
-      credentials: "include"
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    // === EDITAR USUARIO ===
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const id = this.dataset.id;
+        const nombre = decodeURIComponent(this.dataset.nombre || '');
+        const rol = this.dataset.rol;
+
+        // Cerrar modal gestión
+        const modalGestion = bootstrap.Modal.getInstance(document.getElementById('modalGestion'));
+        if (modalGestion) modalGestion.hide();
+
+        // Rellenar formulario
+        document.getElementById('editNombre').value = nombre;
+        document.getElementById('editRol').value = rol;
+        document.getElementById('editPassword').value = '';
+        document.getElementById('cambiarPassword').checked = false;
+        document.getElementById('campoPassword').style.display = 'none';
+        document.getElementById('formEditarReal').action = `/register/editar/${id}`;
+
+        // Abrir modal editar
+        new bootstrap.Modal(document.getElementById('modalEditarUsuario')).show();
+      });
     });
-    if (response.ok) {
-      // Redirige al login si se cerró correctamente
-      window.location.href = "/login?alert=logout";
-    } else {
-      Swal.fire("Error", "No se pudo cerrar la sesión", "error");
+
+    // Checkbox contraseña
+    document.getElementById('cambiarPassword').addEventListener('change', function () {
+      document.getElementById('campoPassword').style.display = this.checked ? 'block' : 'none';
+      if (!this.checked) document.getElementById('editPassword').value = '';
+    });
+
+    // ====== ALERTAS BONITAS Y UNIFICADAS (TODAS IGUALES) ======
+   <% if (alert && alert !== 'null' && alert !== '') { %>
+    document.addEventListener('DOMContentLoaded', () => {
+      const tipo = "<%= alert %>".trim();
+
+      const alertas = {
+        success:     { icon: 'success',  title: '¡Usuario creado correctamente!',     color: '#28a745' },
+        edited:      { icon: 'success',  title: '¡Usuario actualizado correctamente!', color: '#28a745' },
+        edited_no_pass: { icon: 'success', title: '¡Usuario actualizado correctamente!', color: '#28a745' },
+        deleted:     { icon: 'success',  title: '¡Usuario eliminado correctamente!',   color: '#28a745' },
+        userexists:  { icon: 'warning', title: 'Este nombre de usuario ya existe',     color: '#ffc107' },
+        nameexists:  { icon: 'warning', title: 'Este nombre ya está en uso por otro usuario', color: '#ffc107' },
+        selfdelete:  { icon: 'warning', title: 'No puedes eliminarte a ti mismo',      color: '#ffc107' },
+        empty:       { icon: 'warning', title: 'Completa todos los campos',           color: '#ffc107' },
+        error:       { icon: 'error',   title: 'Ocurrió un error inesperado',         color: '#dc3545' }
+      };
+
+      const config = alertas[tipo] || alertas.error;
+
+      Swal.fire({
+        icon: config.icon,
+        title: config.title,
+        confirmButtonText: 'Aceptar',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        customClass: {
+          popup: 'animated bounceIn',
+          confirmButton: 'btn btn-primary px-4'
+        },
+        buttonsStyling: false
+      });
+    });
+  <% } %>
+
+    async function logout() {
+      await fetch("/logout", { method: "POST" });
+      window.location.href = "/login";
     }
-  } catch (err) {
-    console.error(err);
-    Swal.fire("Error", "Hubo un problema al cerrar la sesión", "error");
-  }
-}
-</script>
-  </body>
+  </script>
+</body>
 </html>

@@ -17,8 +17,35 @@ router.get("/login", (req, res) => {
 });
 
 // REGISTER → privada
-router.get("/register", (req, res) => {
-  res.render("register", { alert: null });
+// REGISTER → privada (para todos los usuarios logueados)
+router.get("/register", protect, async (req, res) => {
+  // Solo si es admin, cargamos la lista de usuarios
+  if (req.user && Number(req.user.rol || req.user.id_rol) === 1) {
+    try {
+      const [usuarios] = await pool.query(
+        "SELECT id_usuario, nombre_usuario, id_rol FROM usuario ORDER BY id_usuario"
+      );
+      return res.render("register", {
+        currentUser: req.user,
+        usuarios,
+        alert: req.query.alert || null
+      });
+    } catch (error) {
+      console.error("Error al cargar usuarios:", error);
+      return res.render("register", {
+        currentUser: req.user,
+        usuarios: [],
+        alert: "error"
+      });
+    }
+  }
+
+  // Si NO es admin (operador o cualquier otro), renderizamos sin usuarios
+  res.render("register", {
+    currentUser: req.user,
+    usuarios: [],           // ← Esto evita el error "usuarios is not defined"
+    alert: req.query.alert || null
+  });
 });
 
 // POST routes
@@ -63,6 +90,7 @@ router.get("/dashboard", protect, async (req, res) => {
         totalZonas: totalZonas[0].total,
         casosMes: casosMes[0].total,
       },
+       currentUser: req.user || null
     });
   } catch (error) {
     console.error("Error al cargar el dashboard:", error);

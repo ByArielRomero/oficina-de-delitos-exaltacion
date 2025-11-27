@@ -10,7 +10,7 @@ import personaRoutes from './routes/personaRoutes.js';
 import zonaRoutes from "./routes/zonaRoutes.js";
 import casoRoutes from "./routes/casoRoutes.js";
 import session from "express-session";
-
+import usuarioRoutes from "./routes/usuarioRoutes.js";  // BIEN
 
 dotenv.config()
 const app = express()
@@ -48,10 +48,9 @@ app.get('/', (req, res) => {
 app.use("/", authRoutes);
 app.use("/", personaRoutes);
 app.use("/", dashboardRoutes);
-app.use("/zonas", zonaRoutes);
+app.use("/zonas", zonaRoutes); 
 app.use("/", casoRoutes);
-
-
+app.use("/", usuarioRoutes);
 
 const PORT = env.PORT || 3000;
 

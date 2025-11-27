@@ -258,3 +258,27 @@ body {
   width: 100% !important;
   height: 250px !important;
 }
+
+.badge.estado {
+  padding: 0.5em 0.75em;
+  font-size: 0.85em;
+  font-weight: bold;
+  border-radius: 0.25rem;
+  color: white;
+}
+
+.badge[data-estado="Sin comenzar"] {
+  background-color: gray;
+}
+
+.badge[data-estado="En curso"] {
+  background-color: blue;
+}
+
+.badge[data-estado="Bloqueado"] {
+  background-color: orange;
+}
+
+.badge[data-estado="Completado"] {
+  background-color: green;
+}
