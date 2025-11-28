@@ -42,12 +42,13 @@ export async function getResumenGeneral(req, res) {
 
 export const getStatsCharts = async (req, res) => {
   try {
-    // Delitos por año
+    // Delitos por mes (Año Actual)
     const [delitosAnio] = await pool.query(`
-      SELECT YEAR(fecha_creada) AS anio, COUNT(*) AS total
+      SELECT MONTH(fecha_creada) AS mes, COUNT(*) AS total
       FROM casos
-      GROUP BY YEAR(fecha_creada)
-      ORDER BY anio
+      WHERE YEAR(fecha_creada) = YEAR(CURRENT_DATE())
+      GROUP BY MONTH(fecha_creada)
+      ORDER BY mes
     `);
 
     // Delitos por género (antes estaba 'sexo')

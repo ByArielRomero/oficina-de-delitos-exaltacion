@@ -92,7 +92,17 @@
     <div class="container-fluid py-4">
       <div class="row mb-4">
         <div class="col-12">
-          <h2 class="page-title">Dashboard de Estadísticas</h2>
+          <h2 class="page-title">
+            Dashboard de Estadísticas
+            <i
+              class="bi bi-question-circle text-muted ms-2"
+              style="font-size: 0.8em; cursor: pointer"
+              data-bs-toggle="tooltip"
+              data-bs-html="true"
+              data-bs-delay='{"show":0,"hide":2000}'
+              title="Este panel ofrece una vista general de las estadísticas del sistema, incluyendo gráficos de casos por estado y resúmenes mensuales. Utilice esta información para la toma de decisiones.<br><br><a href='#' target='_blank' style='color: #fff; text-decoration: underline;'>Ver video tutorial</a>"
+            ></i>
+          </h2>
           <p class="text-muted">Visualización de datos de casos registrados</p>
         </div>
       </div>
@@ -183,6 +193,16 @@
     <% } %>
 
     <script>
+      // Inicializar tooltips
+      document.addEventListener("DOMContentLoaded", function () {
+        var tooltipTriggerList = [].slice.call(
+          document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        );
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+      });
+
       async function logout() {
         try {
           const response = await fetch("/logout", {
@@ -217,26 +237,47 @@
 
           const { delitosAnio, delitosSexo, tiposDelito } = result.data;
 
-          // --- 1. Delitos del Año (Barras) ---
-          const labelsAnio = delitosAnio?.map((d) => d.anio) || [];
+          // --- 1. Delitos del Año (Barras) -> AHORA POR MES ---
+          // Mapeo de número de mes a nombre
+          const monthNames = [
+            "", "Ene", "Feb", "Mar", "Abr", "May", "Jun",
+            "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
+          ];
+
+          // Preparamos arrays de 12 meses vacíos para que el gráfico quede fijo (opcional, o solo los meses con datos)
+          // Opción A: Solo meses con datos (lo que trae la query)
+          const labelsAnio = delitosAnio?.map((d) => monthNames[d.mes]) || [];
           const dataAnio = delitosAnio?.map((d) => d.total) || [];
+
           new Chart(chartDelitosAnioEl.getContext("2d"), {
             type: "bar",
             data: {
               labels: labelsAnio,
               datasets: [
                 {
-                  label: "Cantidad de Delitos",
+                  label: "Casos (Año Actual)",
                   data: dataAnio,
                   backgroundColor: "rgba(54, 162, 235, 0.7)",
+                  borderRadius: 4,
                 },
               ],
             },
             options: {
               responsive: true,
               maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+              plugins: { 
+                legend: { display: false },
+                title: {
+                  display: true,
+                  text: 'Casos por Mes (' + new Date().getFullYear() + ')'
+                }
+              },
+              scales: { 
+                y: { 
+                  beginAtZero: true, 
+                  ticks: { precision: 0 } 
+                } 
+              },
             },
           });
 
@@ -339,6 +380,7 @@ new Chart(chartDelitosSexoEl.getContext("2d"), {
             "#EFC050",
             "#5B5EA6",
             "#9B2335",
+            "#2a4d69",
           ];
 
           new Chart(chartTiposDelitosEl.getContext("2d"), {

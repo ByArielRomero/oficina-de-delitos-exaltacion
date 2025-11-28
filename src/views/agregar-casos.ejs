@@ -118,9 +118,18 @@
             <div class="card-header">
               <h4 class="mb-0">
                 <i class="bi bi-file-earmark-plus"></i> Agregar Nuevo Caso
+                <i
+                  class="bi bi-question-circle text-muted ms-2"
+                  style="font-size: 0.8em; cursor: pointer"
+                  data-bs-toggle="tooltip"
+                  data-bs-html="true"
+                  data-bs-delay='{"show":0,"hide":2000}'
+                  title="Utilice este formulario para dar de alta un nuevo caso. Debe seleccionar una persona existente y completar los detalles del incidente, incluyendo tipo y zona.<br><br><a href='#' target='_blank' style='color: #fff; text-decoration: underline;'>Ver video tutorial</a>"
+                ></i>
               </h4>
             </div>
             <div class="card-body">
+              <small class="text-danger mb-3 d-block">* los campos marcados con * son obligatorios</small>
               <form id="formCaso">
                 <div class="mb-3">
                   <label for="personaId" class="form-label"
@@ -624,6 +633,7 @@
           // Fechas por defecto
           const today = new Date().toISOString().split("T")[0];
           fechaCreacionInput.value = today;
+          fechaCreacionInput.max = today; // Restringir fecha futura
           fechaActualizacionInput.value = today;
         } else {
           alert("Error al cargar datos: " + result.message);
@@ -633,6 +643,14 @@
         alert("Error de conexión");
       }
     }
+
+    // Inicializar tooltips
+    var tooltipTriggerList = [].slice.call(
+      document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    );
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 // ← NUEVO: Submit modal: Agregar zona (mismo flujo que en agregar-persona)
       const formZona = document.getElementById("formZona");
       if (formZona) {

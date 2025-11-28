@@ -104,6 +104,14 @@
             >
               <h4 class="mb-0">
                 <i class="bi bi-person-plus"></i> Agregar Nueva Persona
+                <i
+                  class="bi bi-question-circle text-muted ms-2"
+                  style="font-size: 0.8em; cursor: pointer"
+                  data-bs-toggle="tooltip"
+                  data-bs-html="true"
+                  data-bs-delay='{"show":0,"hide":2000}'
+                  title="Complete este formulario para registrar un nuevo ciudadano en la base de datos. Asegúrese de ingresar el DNI y Teléfono correctamente para evitar duplicados.<br><br><a href='#' target='_blank' style='color: #fff; text-decoration: underline;'>Ver video tutorial</a>"
+                ></i>
               </h4>
               <button
                 class="btn btn-outline-primary"
@@ -115,6 +123,7 @@
               </button>
             </div>
             <div class="card-body">
+              <small class="text-danger mb-3 d-block">* los campos marcados con * son obligatorios</small>
               <form id="formPersona" action="/agregar-persona" method="POST">
                 <div class="row">
                   <div class="col-md-6 mb-3">
@@ -151,12 +160,12 @@
                       type="text"
                       name="dni"
                       class="form-control"
-                      placeholder="8 digitos"
+                      placeholder="7, 8 o 9 digitos"
                       required
-                      minlength="8"
-                      maxlength="8"
-                      pattern="[0-9]{8}"
-                      title="Solo números, de 8 digitos"
+                      minlength="7"
+                      maxlength="9"
+                      pattern="[0-9]{7,9}"
+                      title="Solo números, de 7, 8 o 9 digitos"
                       id="dni"
                     />
                     <small class="text-muted">Ej: 44888777</small>
@@ -181,18 +190,52 @@
                   </div>
                 </div>
                 <div class="row">
+                  <!-- Dirección dividida: Calle y Altura -->
                   <div class="col-md-6 mb-3">
-                    <label for="direccion" class="form-label"
-                      >Dirección <span class="text-danger">*</span></label
-                    >
+                    <label for="calle" class="form-label">Calle <span class="text-danger">*</span></label>
                     <input
                       type="text"
-                      name="direccion"
                       class="form-control"
-                      id="direccion"
+                      id="calle"
+                      name="calle"
                       required
+                      placeholder="Ej: San Martín"
                     />
                   </div>
+                  <div class="col-md-4 mb-3">
+                    <label for="altura" class="form-label">Número <span class="text-danger">*</span></label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="altura"
+                      name="altura"
+                      required
+                      placeholder="123"
+                    />
+                  </div>
+                  <div class="col-md-2 mb-3 d-flex align-items-end">
+                    <div class="form-check mb-2">
+                      <input class="form-check-input" type="checkbox" id="sinNumero" name="sinNumero">
+                      <label class="form-check-label" for="sinNumero">
+                        S/N
+                      </label>
+                    </div>
+                  </div>
+
+                  <script>
+                    // Lógica para deshabilitar altura si es S/N
+                    document.getElementById('sinNumero').addEventListener('change', function() {
+                      const alturaInput = document.getElementById('altura');
+                      if (this.checked) {
+                        alturaInput.value = '';
+                        alturaInput.disabled = true;
+                        alturaInput.required = false;
+                      } else {
+                        alturaInput.disabled = false;
+                        alturaInput.required = true;
+                      }
+                    });
+                  </script>
                   <div class="col-md-6 mb-3">
                     <label for="genero" class="form-label"
                       >Género <span class="text-danger">*</span></label
@@ -482,15 +525,52 @@
                       required
                     />
                   </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Dirección</label>
-                    <input
-                      type="text"
-                      name="direccion"
-                      class="form-control"
-                      required
-                    />
-                  </div>
+                  <!-- Dirección dividida: Calle y Altura -->
+              <div class="col-md-6">
+                <label for="calle" class="form-label">Calle *</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="calle"
+                  name="calle"
+                  required
+                  placeholder="Ej: San Martín"
+                />
+              </div>
+              <div class="col-md-4">
+                <label for="altura" class="form-label">Número *</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="altura"
+                  name="altura"
+                  required
+                  placeholder="123"
+                />
+              </div>
+              <div class="col-md-2 d-flex align-items-end">
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" id="sinNumero" name="sinNumero">
+                  <label class="form-check-label" for="sinNumero">
+                    S/N
+                  </label>
+                </div>
+              </div>
+
+              <script>
+                // Lógica para deshabilitar altura si es S/N
+                document.getElementById('sinNumero').addEventListener('change', function() {
+                  const alturaInput = document.getElementById('altura');
+                  if (this.checked) {
+                    alturaInput.value = '';
+                    alturaInput.disabled = true;
+                    alturaInput.required = false;
+                  } else {
+                    alturaInput.disabled = false;
+                    alturaInput.required = true;
+                  }
+                });
+              </script>
                   <div class="col-md-6">
                     <label class="form-label">Género</label>
                     <select class="form-select" name="genero" required>
@@ -576,7 +656,10 @@
                     type="text"
                     name="dni"
                     class="form-control"
-                    maxlength="8"
+                    maxlength="9"
+                    pattern="[0-9]{7,9}"
+                    placeholder="7, 8 o 9 digitos"
+                    title="Solo números, de 7, 8 o 9 digitos"
                     required
                   />
                 </div>
@@ -590,14 +673,31 @@
                     required
                   />
                 </div>
-                <div class="col-12">
-                  <label>Dirección *</label
-                  ><input
+                <div class="col-md-6">
+                  <label>Calle *</label>
+                  <input
                     type="text"
-                    name="direccion"
+                    name="calle"
+                    id="editCalle"
                     class="form-control"
                     required
                   />
+                </div>
+                <div class="col-md-4">
+                  <label>Número *</label>
+                  <input
+                    type="number"
+                    name="altura"
+                    id="editAltura"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="editSinNumero" name="sinNumero">
+                    <label class="form-check-label" for="editSinNumero">S/N</label>
+                  </div>
                 </div>
                 <div class="col-md-6">
                   <label>Género *</label>
@@ -723,6 +823,14 @@
         document
           .getElementById("editFormZona")
           .addEventListener("submit", editarZonaSubmit);
+
+        // Inicializar tooltips
+        var tooltipTriggerList = [].slice.call(
+          document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        );
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
       });
       async function cargarZonas() {
         try {
@@ -1039,9 +1147,14 @@
 
       async function editarPersonaSubmit(e) {
         e.preventDefault();
-        const data = Object.fromEntries(new FormData(e.target).entries());
+        const form = e.target;
+        const id = form.idPersonaEditar.value;
+        const data = Object.fromEntries(new FormData(form).entries());
+        // Checkbox handling
+        if (!data.sinNumero) data.sinNumero = false;
+
         try {
-          const res = await fetch(`/personas/${editingId}`, {
+          const res = await fetch(`/personas/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
@@ -1199,7 +1312,7 @@
             // Borra todo lo que no sea número
             this.value = this.value.replace(/\D/g, "");
             // Limita la longitud según el campo
-            if (this.name === "dni") this.value = this.value.slice(0, 8); // DNI: máx 8
+            if (this.name === "dni") this.value = this.value.slice(0, 9); // DNI: máx 9 (acepta 7, 8 o 9)
             if (this.name === "telefono") this.value = this.value.slice(0, 15); // Tel: máx 15
           });
         });
@@ -1228,18 +1341,77 @@
         document.querySelector(
           '#formEditarPersonaReal input[name="telefono"]'
         ).value = persona.telefono || "";
-        document.querySelector(
-          '#formEditarPersonaReal input[name="direccion"]'
-        ).value = persona.direccion || "";
-        document.querySelector(
-          '#formEditarPersonaReal input[name="email"]'
-        ).value = persona.email || "";
-        document.querySelector(
-          '#formEditarPersonaReal select[name="genero"]'
-        ).value = persona.genero;
-        document.querySelector(
-          '#formEditarPersonaReal select[name="zona"]'
-        ).value = persona.zona_id || persona.zona || "";
+        const form = document.getElementById("formEditarPersonaReal");
+        const p = persona; // Alias para acortar
+
+        form.idPersonaEditar.value = p.id;
+        form.nombre.value = p.nombre;
+        form.apellido.value = p.apellido;
+        form.dni.value = p.dni;
+        form.telefono.value = p.telefono || "";
+        form.email.value = p.email || "";
+        form.genero.value = p.genero;
+        form.zona.value = p.zona_id || p.zona || ""; // Asegúrate de que el backend devuelva zona_id
+
+        // Parsear dirección
+        // 1. Si tenemos calle y numero_o_sn del backend, usarlos
+        const editCalle = document.getElementById("editCalle");
+        const editAltura = document.getElementById("editAltura");
+        const editSinNumero = document.getElementById("editSinNumero");
+
+        if (p.calle) {
+           editCalle.value = p.calle;
+           if (p.numero_o_sn === "S/N" || p.numero_o_sn === "s/n") {
+             editAltura.value = "";
+             editSinNumero.checked = true;
+             editAltura.disabled = true;
+             editAltura.required = false;
+           } else {
+             editAltura.value = p.numero_o_sn;
+             editSinNumero.checked = false;
+             editAltura.disabled = false;
+             editAltura.required = true;
+           }
+        } else {
+          // 2. Fallback: parsear string direccion (legacy)
+          const direccion = p.direccion || "";
+          if (direccion.toLowerCase().endsWith("s/n")) {
+            editCalle.value = direccion.replace(/\s?s\/n$/i, "").trim();
+            editAltura.value = "";
+            editSinNumero.checked = true;
+            editAltura.disabled = true;
+            editAltura.required = false;
+          } else {
+            // Intentar separar el último número
+            const match = direccion.match(/^(.*)\s+(\d+)$/);
+            if (match) {
+              editCalle.value = match[1];
+              editAltura.value = match[2];
+              editSinNumero.checked = false;
+              editAltura.disabled = false;
+              editAltura.required = true;
+            } else {
+              // Fallback total
+              editCalle.value = direccion;
+              editAltura.value = "";
+              editSinNumero.checked = false;
+              editAltura.disabled = false;
+              editAltura.required = true;
+            }
+          }
+        }
+
+        // Event listener para S/N en edición
+        editSinNumero.addEventListener('change', function() {
+          if (this.checked) {
+            editAltura.value = '';
+            editAltura.disabled = true;
+            editAltura.required = false;
+          } else {
+            editAltura.disabled = false;
+            editAltura.required = true;
+          }
+        });
 
         // Abrir el modal de edición
         new bootstrap.Modal(
