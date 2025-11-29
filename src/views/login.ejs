@@ -15,11 +15,12 @@
         <div class="logo-container">
           <img style="width: 50%" src="/img/logo-munii.png" alt="">
         </div>
-        <h1>Oficina de Víctimas de Delitos</h1>
+        <h1><%= typeof isAdmin !== 'undefined' && isAdmin ? 'Acceso Administrativo' : 'Oficina de Víctimas de Delitos' %></h1>
         <p>Municipalidad de Exaltación de la Cruz</p>
       </div>
 
       <form id="formLogin" class="login-form" action="/login" method="POST">
+        <input type="hidden" name="login_source" value="<%= typeof isAdmin !== 'undefined' && isAdmin ? 'admin' : 'operator' %>">
         <div class="mb-3">
           <label for="username" class="form-label">Usuario</label>
           <input type="text" name="name" class="form-control" id="username" placeholder="Ingrese su usuario" required>
@@ -33,7 +34,7 @@
         <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
 
         <div class="alert alert-info mt-3" role="alert">
-          <small><strong>Demo:</strong> admin/admin123 o operador/oper123</small>
+          <small><strong>Demo:</strong> admin/admin1234 o operador/oper123</small>
         </div>
       </form>
     </div>
@@ -41,13 +42,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
- <<% if (alert) { %>
+ <% if (alert) { %>
   <% if (alert === "empty") { %>
     <script>Swal.fire("Campos vacíos", "Por favor completa todos los campos.", "warning");</script>
-  <% } else if (alert === "notfound") { %>
-    <script>Swal.fire("Usuario no encontrado", "Verifica el nombre de usuario.", "error");</script>
-  <% } else if (alert === "invalid") { %>
-    <script>Swal.fire("Contraseña incorrecta", "Inténtalo de nuevo.", "error");</script>
+  <% } else if (alert === "credentials") { %>
+    <script>Swal.fire("Credenciales incorrectas", "Usuario o contraseña inválidos.", "error");</script>
   <% } else if (alert === "success") { %>
     <script>
       Swal.fire({

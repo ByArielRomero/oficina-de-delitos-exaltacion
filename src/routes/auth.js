@@ -13,7 +13,13 @@ const router = express.Router();
 // LOGIN → público
 router.get("/login", (req, res) => {
   const { alert } = req.query;
-  res.render("login", { alert: alert || null });
+  res.render("login", { alert: alert || null, isAdmin: false });
+});
+
+// ADMIN LOGIN → público (alias)
+router.get("/admin", (req, res) => {
+  const { alert } = req.query;
+  res.render("login", { alert: alert || null, isAdmin: true });
 });
 
 // REGISTER → privada

@@ -50,14 +50,28 @@ const authController = {
       );
 
       if (rows.length === 0) {
-        return res.redirect("/login?alert=notfound");
+        return res.redirect("/login?alert=credentials");
       }
 
       const user = rows[0];
       const match = await bcrypt.compare(password, user.password);
 
       if (!match) {
-        return res.redirect("/login?alert=invalid");
+        return res.redirect("/login?alert=credentials");
+      }
+
+      // Validar origen del login
+      const { login_source } = req.body;
+      const isAdmin = user.id_rol === 1;
+
+      // Si intenta entrar por /admin (login_source='admin') y NO es admin -> Error
+      if (login_source === 'admin' && !isAdmin) {
+        return res.redirect("/admin?alert=credentials");
+      }
+
+      // Si intenta entrar por /login (login_source='operator') y ES admin -> Error
+      if (login_source === 'operator' && isAdmin) {
+        return res.redirect("/login?alert=credentials");
       }
 
       // ✅ Login exitoso
