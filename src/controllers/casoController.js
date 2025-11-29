@@ -162,7 +162,7 @@ export const addDelito = async (req, res) => {
 
 export const createCasoController = async (req, res) => {
   try {
-    const { observacion, id_persona, id_usuario, id_delito, id_zona, estado = 'Pendiente' } = req.body;
+    const { observacion, id_persona, id_usuario, id_delito, id_zona, estado = 'Pendiente', fecha_creacion } = req.body;
     if (!id_persona || !id_delito || !id_zona) {
       return res.status(400).json({ success: false, message: "Faltan campos requeridos" });
     }
@@ -171,7 +171,7 @@ export const createCasoController = async (req, res) => {
     const nuevoCaso = await createCaso({
       observacion, id_persona: Number(id_persona), id_usuario: usuarioLogueado,
       id_delito: Number(id_delito), id_zona: Number(id_zona),
-      fecha_creada: ahora, fecha_actualizado: ahora, estado
+      fecha_creada: fecha_creacion || ahora, fecha_actualizado: ahora, estado
     });
     res.status(201).json({ success: true, data: nuevoCaso });
   } catch (error) {
