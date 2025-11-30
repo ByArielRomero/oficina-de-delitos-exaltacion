@@ -7,7 +7,7 @@ export const mostrarFormularioPersona = async (req, res) => {
 
     // OBTENER PERSONAS PARA EL MODAL
     const [personasRows] = await pool.query(`
-      SELECT id_persona AS id, nombre, apellido, dni, telefono, email, genero, z.nombre_zona AS zona
+      SELECT id_persona AS id, nombre, apellido, dni, telefono, email, genero, calle, numero_o_sn, z.nombre_zona AS zona
       FROM persona p
       LEFT JOIN zona z ON p.id_zona = z.id_zona
       ORDER BY apellido, nombre
@@ -29,10 +29,20 @@ export const mostrarFormularioPersona = async (req, res) => {
 export const crearPersona = async (req, res) => {
   try {
     // Primero destructuramos del body
-    const { nombre, apellido, dni, telefono, direccion, zona, email, genero } = req.body;
+    // AHORA: recibimos calle, altura, sinNumero en lugar de direccion directa
+    const { nombre, apellido, dni, telefono, calle, altura, sinNumero, zona, email, genero } = req.body;
 
-    if (!/^\d{8}$/.test(dni)) {
-      return res.status(400).json({ success: false, message: "DNI: utilizar 8 digitos" });
+    // Construir dirección
+    let direccionFinal = "";
+    if (sinNumero === "on" || sinNumero === true) {
+      direccionFinal = `${calle} s/n`;
+    } else {
+      direccionFinal = `${calle} ${altura}`;
+    }
+
+    // Validar DNI: 7, 8 o 9 dígitos
+    if (!/^\d{7,9}$/.test(dni)) {
+      return res.status(400).json({ success: false, message: "DNI: utilizar 7, 8 o 9 dígitos" });
     }
      if (!/^\d{8,15}$/.test(telefono)) {
       return res.status(400).json({ success: false, message: "telefono: utilizar 10 digitos" });
@@ -52,7 +62,11 @@ export const crearPersona = async (req, res) => {
       apellido,
       dni,
       telefono,
-      direccion,
+      dni,
+      telefono,
+      direccion: direccionFinal,
+      calle,
+      numero_o_sn: (sinNumero === "on" || sinNumero === true) ? "S/N" : altura,
       zona_id: Number(zona),
       email,
       genero,
@@ -180,7 +194,7 @@ export const listarPersonas = async (req, res) => {
   try {
     const { search = '' } = req.query; // Búsqueda por query param
     let query = `
-      SELECT id_persona AS id, nombre, apellido, dni, telefono, direccion, email, genero, z.id_zona AS zona_id, z.nombre_zona AS zona
+      SELECT id_persona AS id, nombre, apellido, dni, telefono, direccion, calle, numero_o_sn, email, genero, z.id_zona AS zona_id, z.nombre_zona AS zona
       FROM persona p
       LEFT JOIN zona z ON p.id_zona = z.id_zona
       WHERE 1=1
@@ -244,11 +258,13 @@ export const borrarPersona = async (req, res) => {
 // ← NUEVO: Actualizar persona
 export const actualizarPersona = async (req, res) => {
   const { id } = req.params;
-  const { nombre, apellido, dni, telefono, direccion, zona, email, genero } = req.body;
+  // AHORA: recibimos calle, altura, sinNumero
+  const { nombre, apellido, dni, telefono, calle, altura, sinNumero, zona, email, genero } = req.body;
   try {
 
-    if (!/^\d{8}$/.test(dni)) {
-      return res.status(400).json({ success: false, message: "DNI: utilizar 8 digitos" });
+    // Validar DNI: 7, 8 o 9 dígitos
+    if (!/^\d{7,9}$/.test(dni)) {
+      return res.status(400).json({ success: false, message: "DNI: utilizar 7, 8 o 9 dígitos" });
     }
     
      if (!/^\d{8,15}$/.test(telefono)) {
@@ -266,11 +282,19 @@ export const actualizarPersona = async (req, res) => {
       return res.status(400).json({ success: false, message: "Ya existe otra persona con ese DNI" });
     }
 
+    // Construir dirección
+    let direccionFinal = "";
+    if (sinNumero === "on" || sinNumero === true) {
+      direccionFinal = `${calle} s/n`;
+    } else {
+      direccionFinal = `${calle} ${altura}`;
+    }
+
     await pool.query(`
       UPDATE persona 
-      SET nombre = ?, apellido = ?, dni = ?, telefono = ?, direccion = ?, id_zona = ?, email = ?, genero = ?
+      SET nombre = ?, apellido = ?, dni = ?, telefono = ?, direccion = ?, calle = ?, numero_o_sn = ?, id_zona = ?, email = ?, genero = ?
       WHERE id_persona = ?
-    `, [nombre, apellido, dni, telefono, direccion, Number(zona), email, genero, id]);
+    `, [nombre, apellido, dni, telefono, direccionFinal, calle, (sinNumero === "on" || sinNumero === true) ? "S/N" : altura, Number(zona), email, genero, id]);
 
     res.json({ success: true, message: "Persona actualizada correctamente" });
   } catch (error) {

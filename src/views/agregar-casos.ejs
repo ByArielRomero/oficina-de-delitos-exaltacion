@@ -12,6 +12,10 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
     />
+    <link
+      href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/css/style.css" />
 
   </head>
@@ -118,9 +122,18 @@
             <div class="card-header">
               <h4 class="mb-0">
                 <i class="bi bi-file-earmark-plus"></i> Agregar Nuevo Caso
+                <i
+                  class="bi bi-question-circle text-muted ms-2"
+                  style="font-size: 0.8em; cursor: pointer"
+                  data-bs-toggle="tooltip"
+                  data-bs-html="true"
+                  data-bs-delay='{"show":0,"hide":2000}'
+                  title="Utilice este formulario para dar de alta un nuevo caso. Debe seleccionar una persona existente y completar los detalles del incidente, incluyendo tipo y zona.<br><br><a href='https://drive.google.com/file/d/1v4Anp8zQPV1My2CdcC5o6rxQqEbHUerz/view?usp=sharing' target='_blank' style='color: #fff; text-decoration: underline;'>Ver video tutorial</a>"
+                ></i>
               </h4>
             </div>
             <div class="card-body">
+              <small class="text-danger mb-3 d-block">* los campos marcados con * son obligatorios</small>
               <form id="formCaso">
                 <div class="mb-3">
                   <label for="personaId" class="form-label"
@@ -146,7 +159,7 @@
                  </select>
                  <small class="text-muted">
                    Si la zona no está en la lista, 
-                   <a href="#" data-bs-toggle="modal" data-bs-target="#modalAgregarZona">
+                   <a href="/agregar-zona" data-bs-toggle="modal" data-bs-target="#modalAgregarZona">
                     agréguela aquí
                    </a>
                  </small>
@@ -436,6 +449,7 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Para Swal en logout -->
     <!-- Tus scripts (cambia a /js/ si static) -->
@@ -596,6 +610,17 @@
             const option = new Option(p.nombre_completo, p.id_persona); // Nombre completo como text, id como value
             personaSelect.appendChild(option);
           });
+          
+          // Inicializar Tom Select
+          new TomSelect("#personaId", {
+            create: false,
+            sortField: {
+              field: "text",
+              direction: "asc"
+            },
+            placeholder: "Buscar persona...",
+            plugins: ['dropdown_input'],
+          });
 
           // Poblar zonas
           zonaSelect.innerHTML =
@@ -624,6 +649,7 @@
           // Fechas por defecto
           const today = new Date().toISOString().split("T")[0];
           fechaCreacionInput.value = today;
+          fechaCreacionInput.max = today; // Restringir fecha futura
           fechaActualizacionInput.value = today;
         } else {
           alert("Error al cargar datos: " + result.message);
@@ -633,6 +659,14 @@
         alert("Error de conexión");
       }
     }
+
+    // Inicializar tooltips
+    var tooltipTriggerList = [].slice.call(
+      document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    );
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 // ← NUEVO: Submit modal: Agregar zona (mismo flujo que en agregar-persona)
       const formZona = document.getElementById("formZona");
       if (formZona) {
@@ -694,6 +728,12 @@ async function cargarZonas() {
 function renderizarZonas(zonas) {
   const tbody = document.getElementById("tbodyZonas");
   tbody.innerHTML = "";
+  
+  if (zonas.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No hay zonas disponibles, cargue una.</td></tr>';
+    return;
+  }
+
   zonas.forEach(z => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -856,18 +896,24 @@ function cancelarEdicionTipoCaso() {
 async function editarTipoCasoSubmit(e) {
   e.preventDefault();
   const data = Object.fromEntries(new FormData(e.target));
-  const res = await fetch(`/api/casos/delito/${editingIdTipoCaso}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  const result = await res.json();
-  if (result.success) {
-    Swal.fire("Éxito", "Tipo actualizado", "success").then(() => {
-      cancelarEdicionTipoCaso();
-      cargarTiposCaso();
-      actualizarSelectTiposCaso();
+  try {
+    const res = await fetch(`/api/casos/delito/${editingIdTipoCaso}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
+    const result = await res.json();
+    if (result.success) {
+      Swal.fire("Éxito", "Tipo actualizado", "success").then(() => {
+        cancelarEdicionTipoCaso();
+        cargarTiposCaso();
+        actualizarSelectTiposCaso();
+      });
+    } else {
+      Swal.fire("Error", result.message, "error");
+    }
+  } catch (err) {
+    Swal.fire("Error", "No se pudo actualizar", "error");
   }
 }
 

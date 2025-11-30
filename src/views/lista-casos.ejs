@@ -91,7 +91,17 @@
     <div class="container py-4">
       <div class="row mb-3 align-items-center">
         <div class="col-md-6">
-          <h4>Lista de Casos</h4>
+          <h4>
+            Lista de Casos
+            <i
+              class="bi bi-question-circle text-muted ms-2"
+              style="font-size: 0.8em; cursor: pointer"
+              data-bs-toggle="tooltip"
+              data-bs-html="true"
+              data-bs-delay='{"show":0,"hide":2000}'
+              title="Aquí puede visualizar, filtrar y gestionar todos los casos existentes. Utilice las opciones de búsqueda y exportación para generar reportes detallados.<br><br><a href='https://drive.google.com/file/d/1sMIfoI4tvc4icq5ZL6DaOKWN77CZAgdo/view?usp=drive_link' target='_blank' style='color: #fff; text-decoration: underline;'>Ver video tutorial</a>"
+            ></i>
+          </h4>
         </div>
         <div class="col-md-6 text-end">
           <input
@@ -282,11 +292,24 @@
                     id="editDNI"
                     class="form-control"
                     required
+                    minlength="8"
+                    maxlength="8"
+                    pattern="[0-9]{8}"
+                    title="Solo números, de 8 digitos"
                   />
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Teléfono</label>
-                  <input type="text" id="editTelefono" class="form-control" />
+                  <input 
+                    type="text" 
+                    id="editTelefono" 
+                    class="form-control" 
+                    required
+                    minlength="8"
+                    maxlength="15"
+                    pattern="\d{8,15}"
+                    title="Solo números, de 8 a 15 dígitos"
+                  />
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Tipo de Caso</label>
@@ -348,6 +371,14 @@
         );
         aplicarFiltrosYPagina();
         document.getElementById("fechaHasta").valueAsDate = new Date();
+
+        // Inicializar tooltips
+        var tooltipTriggerList = [].slice.call(
+          document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        );
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
       });
 
       // FUNCIÓN ÚNICA QUE HACE TODO: filtra + paginación

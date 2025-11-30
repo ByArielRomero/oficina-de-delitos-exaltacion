@@ -146,6 +146,13 @@ export const addDelito = async (req, res) => {
     if (!tipo_delito || tipo_delito.trim().length < 3) {
       return res.status(400).json({ success: false, message: "Tipo de delito inválido" });
     }
+
+    // Verificar si ya existe
+    const [existing] = await pool.query("SELECT * FROM delito WHERE tipo_delito = ?", [tipo_delito.trim()]);
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, message: "Ya existe un tipo de caso con ese nombre." });
+    }
+
     const nuevo = await createDelito(tipo_delito.trim());
     res.status(201).json({ success: true, data: nuevo });
   } catch (error) {
@@ -155,7 +162,7 @@ export const addDelito = async (req, res) => {
 
 export const createCasoController = async (req, res) => {
   try {
-    const { observacion, id_persona, id_usuario, id_delito, id_zona, estado = 'Pendiente' } = req.body;
+    const { observacion, id_persona, id_usuario, id_delito, id_zona, estado = 'Pendiente', fecha_creacion } = req.body;
     if (!id_persona || !id_delito || !id_zona) {
       return res.status(400).json({ success: false, message: "Faltan campos requeridos" });
     }
@@ -164,7 +171,7 @@ export const createCasoController = async (req, res) => {
     const nuevoCaso = await createCaso({
       observacion, id_persona: Number(id_persona), id_usuario: usuarioLogueado,
       id_delito: Number(id_delito), id_zona: Number(id_zona),
-      fecha_creada: ahora, fecha_actualizado: ahora, estado
+      fecha_creada: fecha_creacion || ahora, fecha_actualizado: ahora, estado
     });
     res.status(201).json({ success: true, data: nuevoCaso });
   } catch (error) {
@@ -265,6 +272,12 @@ export const updateDelito = async (req, res) => {
     return res.status(400).json({ success: false, message: "Nombre inválido" });
   }
   try {
+    // Verificar si ya existe OTRO con ese nombre
+    const [duplicate] = await pool.query("SELECT * FROM delito WHERE tipo_delito = ? AND id_delito != ?", [tipo_delito.trim(), id]);
+    if (duplicate.length > 0) {
+      return res.status(400).json({ success: false, message: "Ya existe un tipo de caso con ese nombre." });
+    }
+
     await pool.query("UPDATE delito SET tipo_delito = ? WHERE id_delito = ?", [tipo_delito.trim(), id]);
     res.json({ success: true, message: "Delito actualizado" });
   } catch (error) {

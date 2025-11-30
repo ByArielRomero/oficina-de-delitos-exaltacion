@@ -27,6 +27,13 @@ export const agregarZona = async (req, res) => {
     if (!nombreZona || nombreZona.trim() === "") {
       return res.status(400).json({ success: false, message: "El nombre de la zona es obligatorio." });
     }
+
+    // Verificar si ya existe una zona con ese nombre
+    const [existing] = await pool.query("SELECT * FROM zona WHERE nombre_zona = ?", [nombreZona.trim()]);
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, message: "Ya existe una zona con ese nombre." });
+    }
+
     // Insertar en la base de datos
     const [result] = await pool.query(
       "INSERT INTO zona (nombre_zona) VALUES (?)",  // ← CAMBIO: Asegurar que el campo sea 'nombre_zona' (ajusta si es 'nombre')
@@ -57,6 +64,13 @@ export const editarZona = async (req, res) => {
     if (existing.length === 0) {
       return res.status(404).json({ success: false, message: "Zona no encontrada" });
     }
+
+    // Verificar si ya existe OTRA zona con ese nombre
+    const [duplicate] = await pool.query("SELECT * FROM zona WHERE nombre_zona = ? AND id_zona != ?", [nombreZona.trim(), id]);
+    if (duplicate.length > 0) {
+      return res.status(400).json({ success: false, message: "Ya existe una zona con ese nombre." });
+    }
+
     await pool.query("UPDATE zona SET nombre_zona = ? WHERE id_zona = ?", [nombreZona.trim(), id]);
     res.json({ success: true, message: "Zona actualizada correctamente" });
   } catch (error) {
