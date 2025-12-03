@@ -87,8 +87,23 @@ export const listarPersonas = async (req, res) => {
     const personas = await PersonaModel.getPersonas(search);
     res.json({ success: true, personas });
   } catch (error) {
-    console.error("Error al listar personas:", error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Error en eliminarPersona:", error);
+    res.status(500).json({ success: false, message: "Error al eliminar persona" });
+  }
+};
+
+// === API: Restaurar Persona (Solo Admin) ===
+export const restaurarPersona = async (req, res) => {
+  const { id } = req.params;
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) {
+      return res.status(403).json({ success: false, message: "Acceso denegado" });
+    }
+    await PersonaModel.restorePersona(id);
+    res.json({ success: true, message: "Persona restaurada" });
+  } catch (error) {
+    console.error("Error en restaurarPersona:", error);
+    res.status(500).json({ success: false, message: "Error al restaurar" });
   }
 };
 
@@ -117,12 +132,15 @@ export const borrarPersona = async (req, res) => {
     res.json({ success: true, message: "Persona borrada correctamente" });
   } catch (error) {
     console.error("Error al borrar persona:", error);
+    // Soft delete should not trigger FK errors unless there is a specific constraint preventing update of deleted_at
+    /*
     if (error.sqlState === '23000' || error.code === 'ER_ROW_IS_REFERENCED_2' || error.code === 1451) {
       return res.status(400).json({
         success: false,
         message: "No se puede borrar, tiene un caso asignado"
       });
     }
+    */
     res.status(500).json({ success: false, message: "Error al borrar la persona." });
   }
 };

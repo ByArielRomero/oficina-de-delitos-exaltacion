@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Elementos Eliminados - OVD</title>
+
+    <!-- Bootstrap y Estilos -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+        .card-menu {
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .card-menu:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="bi bi-shield-check"></i> OVD - Admin
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard"><i class="bi bi-house-door"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register"><i class="bi bi-gear"></i> Configuración</a>
+                    </li>
+                </ul>
+                <div class="dropdown me-3">
+                    <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i>
+                        <span id="currentUser">
+                            <% if (currentUser) { %>
+                                <%= currentUser.nombre || currentUser.username %>
+                                    <% } else { %>
+                                        Admin
+                                        <% } %>
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <button class="dropdown-item text-danger" onclick="logout()">
+                                <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido -->
+    <div class="container py-5">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="text-center mb-3"><i class="bi bi-trash"></i> Elementos Eliminados</h2>
+                <p class="text-center text-muted">Seleccione una categoría para ver y restaurar elementos eliminados.
+                </p>
+            </div>
+        </div>
+
+        <div class="row justify-content-center g-4">
+            <!-- Casos -->
+            <div class="col-md-3">
+                <div class="card card-menu h-100 text-center p-4 border-danger"
+                    onclick="window.location.href='/casos-eliminados'">
+                    <div class="card-body">
+                        <i class="bi bi-folder-x text-danger display-4 mb-3"></i>
+                        <h5 class="card-title">Casos</h5>
+                        <p class="card-text text-muted small">Ver casos eliminados</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personas -->
+            <div class="col-md-3">
+                <div class="card card-menu h-100 text-center p-4 border-primary"
+                    onclick="window.location.href='/personas-eliminadas'">
+                    <div class="card-body">
+                        <i class="bi bi-person-x text-primary display-4 mb-3"></i>
+                        <h5 class="card-title">Personas</h5>
+                        <p class="card-text text-muted small">Ver personas eliminadas</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zonas -->
+            <div class="col-md-3">
+                <div class="card card-menu h-100 text-center p-4 border-success"
+                    onclick="window.location.href='/zonas-eliminadas'">
+                    <div class="card-body">
+                        <i class="bi bi-geo-alt text-success display-4 mb-3"></i>
+                        <h5 class="card-title">Zonas</h5>
+                        <p class="card-text text-muted small">Ver zonas eliminadas</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delitos -->
+            <div class="col-md-3">
+                <div class="card card-menu h-100 text-center p-4 border-warning"
+                    onclick="window.location.href='/delitos-eliminados'">
+                    <div class="card-body">
+                        <i class="bi bi-exclamation-triangle text-warning display-4 mb-3"></i>
+                        <h5 class="card-title">Delitos</h5>
+                        <p class="card-text text-muted small">Ver delitos eliminados</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-12 text-center">
+                <a href="/register" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver a Configuración
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function logout() {
+            try {
+                await fetch("/logout", { method: "POST", credentials: "include" });
+                window.location.href = "/login?alert=logout";
+            } catch (err) {
+                alert("Error al cerrar sesión");
+            }
+        }
+    </script>
+</body>
+
+</html>

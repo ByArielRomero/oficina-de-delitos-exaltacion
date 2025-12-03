@@ -4,16 +4,21 @@ import pool from "../config/db.js";
  * Obtiene todas las personas registradas.
  * @returns {Promise<Array>} Lista de personas.
  */
+/**
+ * Obtiene todas las personas registradas (no eliminadas).
+ * @returns {Promise<Array>} Lista de personas.
+ */
 export async function getPersonas(search = '') {
   let query = `
     SELECT p.*, z.nombre_zona as zona, CONCAT(p.nombre, ' ', p.apellido) AS nombre_completo
     FROM persona p
     LEFT JOIN zona z ON p.id_zona = z.id_zona
+    WHERE p.deleted_at IS NULL
   `;
   const params = [];
 
   if (search) {
-    query += ` WHERE p.nombre LIKE ? OR p.apellido LIKE ? OR p.dni LIKE ?`;
+    query += ` AND (p.nombre LIKE ? OR p.apellido LIKE ? OR p.dni LIKE ?)`;
     const term = `%${search}%`;
     params.push(term, term, term);
   }
@@ -61,7 +66,7 @@ export async function updatePersona(id, { nombre, apellido, dni, telefono }) {
  * @returns {Promise<Object|null>} Persona encontrada o null.
  */
 export async function getPersonaById(id) {
-  const [rows] = await pool.query("SELECT * FROM persona WHERE id_persona = ?", [id]);
+  const [rows] = await pool.query("SELECT * FROM persona WHERE id_persona = ? AND deleted_at IS NULL", [id]);
   return rows[0] || null;
 }
 
@@ -71,16 +76,38 @@ export async function getPersonaById(id) {
  * @returns {Promise<Object|null>} Persona encontrada o null.
  */
 export async function getPersonaByDni(dni) {
-  const [rows] = await pool.query("SELECT * FROM persona WHERE dni = ?", [dni]);
+  const [rows] = await pool.query("SELECT * FROM persona WHERE dni = ? AND deleted_at IS NULL", [dni]);
   return rows[0] || null;
 }
 
 /**
- * Elimina una persona por su ID.
+ * Elimina una persona por su ID (Soft Delete).
  * @param {number} id - ID de la persona.
  * @returns {Promise<boolean>} True si se eliminó.
  */
 export async function deletePersona(id) {
-  const [result] = await pool.query("DELETE FROM persona WHERE id_persona = ?", [id]);
+  const [result] = await pool.query("UPDATE persona SET deleted_at = NOW() WHERE id_persona = ?", [id]);
+  return result.affectedRows > 0;
+}
+
+/**
+ * Obtiene personas eliminadas.
+ */
+export async function getPersonasEliminadas() {
+  const [rows] = await pool.query(`
+    SELECT p.*, z.nombre_zona as zona
+    FROM persona p
+    LEFT JOIN zona z ON p.id_zona = z.id_zona
+    WHERE p.deleted_at IS NOT NULL
+    ORDER BY p.deleted_at DESC
+  `);
+  return rows;
+}
+
+/**
+ * Restaura una persona eliminada.
+ */
+export async function restorePersona(id) {
+  const [result] = await pool.query("UPDATE persona SET deleted_at = NULL WHERE id_persona = ?", [id]);
   return result.affectedRows > 0;
 }

@@ -3,12 +3,13 @@ import express from "express";
 
 const router = express.Router();
 
-import { 
-  mostrarFormularioPersona , 
-  crearPersona, 
-  listarPersonas, 
-  borrarPersona, 
-  actualizarPersona 
+import {
+  mostrarFormularioPersona,
+  crearPersona,
+  listarPersonas,
+  borrarPersona,
+  actualizarPersona,
+  restaurarPersona
 } from "../controllers/personaController.js";
 import { protect } from '../middlewares/authMiddleware.js';
 
@@ -22,6 +23,7 @@ router.get("/personas", protect, listarPersonas);
 
 
 router.put("/personas/:id", protect, actualizarPersona);
-router.delete("/borrarPersona/:id", protect, borrarPersona);
+router.delete("/personas/:id", protect, borrarPersona);
+router.put("/personas/:id/restore", protect, restaurarPersona);
 
 export default router;

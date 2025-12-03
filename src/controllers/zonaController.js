@@ -11,9 +11,9 @@ export const listarZonas = async (req, res) => {
     // La búsqueda por nombre no está implementada en el modelo básico,
     // pero podemos filtrar en memoria o agregar método al modelo.
     // Por simplicidad y dado que son pocas zonas, filtramos en memoria si hay search.
-    
+
     let zonas = await ZonaModel.getZonas();
-    
+
     if (search.trim()) {
       const term = search.trim().toLowerCase();
       zonas = zonas.filter(z => z.nombre_zona.toLowerCase().includes(term));
@@ -44,7 +44,7 @@ export const agregarZona = async (req, res) => {
     }
 
     const id = await ZonaModel.createZona(nombreZona.trim());
-    
+
     res.json({
       success: true,
       message: "Zona agregada correctamente.",
@@ -100,11 +100,26 @@ export const borrarZona = async (req, res) => {
     if (!existing) {
       return res.status(404).json({ success: false, message: "Zona no encontrada" });
     }
-    
+
     await ZonaModel.deleteZona(id);
     res.json({ success: true, message: "Zona borrada correctamente" });
   } catch (error) {
-    console.error("Error al borrar zona:", error);
-    res.status(500).json({ success: false, message: "Error al borrar zona, esta asignada a un Caso" });
+    console.error("Error en deleteZona:", error);
+    res.status(500).json({ success: false, message: "Error al borrar" });
+  }
+};
+
+// === API: Restaurar Zona (Solo Admin) ===
+export const restaurarZona = async (req, res) => {
+  const { id } = req.params;
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) {
+      return res.status(403).json({ success: false, message: "Acceso denegado" });
+    }
+    await ZonaModel.restoreZona(id);
+    res.json({ success: true, message: "Zona restaurada" });
+  } catch (error) {
+    console.error("Error en restaurarZona:", error);
+    res.status(500).json({ success: false, message: "Error al restaurar" });
   }
 };

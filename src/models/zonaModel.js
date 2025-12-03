@@ -4,8 +4,12 @@ import pool from "../config/db.js";
  * Obtiene todas las zonas ordenadas por nombre.
  * @returns {Promise<Array>} Lista de zonas.
  */
+/**
+ * Obtiene todas las zonas ordenadas por nombre (no eliminadas).
+ * @returns {Promise<Array>} Lista de zonas.
+ */
 export async function getZonas() {
-  const [rows] = await pool.query("SELECT * FROM zona ORDER BY nombre_zona ASC");
+  const [rows] = await pool.query("SELECT * FROM zona WHERE deleted_at IS NULL ORDER BY nombre_zona ASC");
   return rows;
 }
 
@@ -15,7 +19,7 @@ export async function getZonas() {
  * @returns {Promise<Object|null>} Zona encontrada o null.
  */
 export async function getZonaByName(nombreZona) {
-  const [rows] = await pool.query("SELECT * FROM zona WHERE nombre_zona = ?", [nombreZona]);
+  const [rows] = await pool.query("SELECT * FROM zona WHERE nombre_zona = ? AND deleted_at IS NULL", [nombreZona]);
   return rows[0] || null;
 }
 
@@ -25,7 +29,7 @@ export async function getZonaByName(nombreZona) {
  * @returns {Promise<Object|null>} Zona encontrada o null.
  */
 export async function getZonaById(id) {
-  const [rows] = await pool.query("SELECT * FROM zona WHERE id_zona = ?", [id]);
+  const [rows] = await pool.query("SELECT * FROM zona WHERE id_zona = ? AND deleted_at IS NULL", [id]);
   return rows[0] || null;
 }
 
@@ -51,11 +55,27 @@ export async function updateZona(id, nombreZona) {
 }
 
 /**
- * Elimina una zona por su ID.
+ * Elimina una zona por su ID (Soft Delete).
  * @param {number} id - ID de la zona.
  * @returns {Promise<boolean>} True si se eliminó.
  */
 export async function deleteZona(id) {
-  const [result] = await pool.query("DELETE FROM zona WHERE id_zona = ?", [id]);
+  const [result] = await pool.query("UPDATE zona SET deleted_at = NOW() WHERE id_zona = ?", [id]);
+  return result.affectedRows > 0;
+}
+
+/**
+ * Obtiene zonas eliminadas.
+ */
+export async function getZonasEliminadas() {
+  const [rows] = await pool.query("SELECT * FROM zona WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+  return rows;
+}
+
+/**
+ * Restaura una zona eliminada.
+ */
+export async function restoreZona(id) {
+  const [result] = await pool.query("UPDATE zona SET deleted_at = NULL WHERE id_zona = ?", [id]);
   return result.affectedRows > 0;
 }

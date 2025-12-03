@@ -1,22 +1,36 @@
 <!DOCTYPE html>
 <html lang="es" data-current-user="<%= JSON.stringify(currentUser || null) %>">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Configuración - OVD</title>
-  
+
   <!-- Bootstrap y Estilos -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/style.css" />
-  
+
   <style>
-    .btn-gestion { min-width: 240px; font-size: 1.1rem; }
-    body { background-color: #f8f9fa; }
-    .modal-backdrop.show { opacity: 0.7; }
-    #modalEditarUsuario { z-index: 1060 !important; }
+    .btn-gestion {
+      min-width: 240px;
+      font-size: 1.1rem;
+    }
+
+    body {
+      background-color: #f8f9fa;
+    }
+
+    .modal-backdrop.show {
+      opacity: 0.7;
+    }
+
+    #modalEditarUsuario {
+      z-index: 1060 !important;
+    }
   </style>
 </head>
+
 <body>
 
   <!-- =================================================================================
@@ -31,22 +45,29 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav me-auto">
           <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-house-door"></i> Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" href="/agregar-persona"><i class="bi bi-person-plus"></i> Agregar Persona</a></li>
-          <li class="nav-item"><a class="nav-link" href="/agregar-caso"><i class="bi bi-file-earmark-plus"></i> Agregar Caso</a></li>
-          <li class="nav-item"><a class="nav-link" href="/lista-casos"><i class="bi bi-list-ul"></i> Lista de Casos</a></li>
+          <li class="nav-item"><a class="nav-link" href="/agregar-persona"><i class="bi bi-person-plus"></i> Agregar
+              Persona</a></li>
+          <li class="nav-item"><a class="nav-link" href="/agregar-caso"><i class="bi bi-file-earmark-plus"></i> Agregar
+              Caso</a></li>
+          <li class="nav-item"><a class="nav-link" href="/lista-casos"><i class="bi bi-list-ul"></i> Lista de Casos</a>
+          </li>
         </ul>
         <div class="dropdown me-3">
           <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
             <i class="bi bi-person-circle"></i>
             <span id="currentUser">
               <%= currentUser?.nombre || currentUser?.username || 'Usuario' %>
-              <small class="text-light-50">(<%= Number(currentUser?.rol || currentUser?.id_rol) === 1 ? 'Admin' : 'Operador' %>)</small>
+                <small class="text-light-50">(<%= Number(currentUser?.rol || currentUser?.id_rol)===1 ? 'Admin'
+                    : 'Operador' %>)</small>
             </span>
           </button>
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item active" href="/register"><i class="bi bi-gear"></i> Configuración</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><button class="dropdown-item text-danger" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</button></li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+            <li><button class="dropdown-item text-danger" onclick="logout()"><i class="bi bi-box-arrow-right"></i>
+                Cerrar sesión</button></li>
           </ul>
         </div>
       </div>
@@ -61,30 +82,30 @@
       <div class="col-lg-6">
         <h2 class="text-center mb-5 text-primary">
           <i class="bi bi-gear-wide-connected"></i> Configuración del Sistema
-          <i
-            class="bi bi-question-circle text-muted ms-2"
-            style="font-size: 0.6em; cursor: pointer; vertical-align: middle;"
-            data-bs-toggle="tooltip"
-            data-bs-html="true"
-            data-bs-delay='{"show":0,"hide":2000}'
-            title="Administre los usuarios del sistema, sus roles y permisos. También puede realizar copias de seguridad y configurar parámetros generales.<br><br><a href='https://drive.google.com/file/d/1bewVYG1Nd8uZ2KGgbaNHua1b4hYADjJQ/view?usp=drive_link' target='_blank' style='color: #fff; text-decoration: underline;'>Ver video tutorial</a>"
-          ></i>
+          <i class="bi bi-question-circle text-muted ms-2"
+            style="font-size: 0.6em; cursor: pointer; vertical-align: middle;" data-bs-toggle="tooltip"
+            data-bs-html="true" data-bs-delay='{"show":0,"hide":2000}'
+            title="Administre los usuarios del sistema, sus roles y permisos. También puede realizar copias de seguridad y configurar parámetros generales.<br><br><a href='https://drive.google.com/file/d/1bewVYG1Nd8uZ2KGgbaNHua1b4hYADjJQ/view?usp=drive_link' target='_blank' style='color: #fff; text-decoration: underline;'>Ver video tutorial</a>"></i>
         </h2>
         <div class="d-grid gap-4">
-          <button class="btn btn-danger btn-lg" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</button>
+          <button class="btn btn-danger btn-lg" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Cerrar
+            Sesión</button>
 
-          <% if (currentUser && Number(currentUser.rol || currentUser.id_rol) === 1) { %>
+          <% if (currentUser && Number(currentUser.rol || currentUser.id_rol)===1) { %>
             <button class="btn btn-success btn-lg btn-gestion" data-bs-toggle="modal" data-bs-target="#modalAgregar">
               <i class="bi bi-person-plus"></i> Agregar Usuario
             </button>
             <button class="btn btn-primary btn-lg btn-gestion" data-bs-toggle="modal" data-bs-target="#modalGestion">
               <i class="bi bi-people"></i> Gestionar Usuarios
             </button>
-          <% } else { %>
-            <div class="alert alert-info text-center">
-              <i class="bi bi-info-circle"></i> Solo los administradores pueden gestionar usuarios.
-            </div>
-          <% } %>
+            <a href="/eliminados" class="btn btn-warning btn-lg btn-gestion">
+              <i class="bi bi-trash"></i> Ver Eliminados
+            </a>
+            <% } else { %>
+              <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle"></i> Solo los administradores pueden gestionar usuarios.
+              </div>
+              <% } %>
         </div>
       </div>
     </div>
@@ -183,29 +204,40 @@
           <div class="table-responsive">
             <table class="table table-hover align-middle">
               <thead class="table-dark">
-                <tr><th>ID</th><th>Usuario</th><th>Rol</th><th>Acciones</th></tr>
+                <tr>
+                  <th>ID</th>
+                  <th>Usuario</th>
+                  <th>Rol</th>
+                  <th>Acciones</th>
+                </tr>
               </thead>
               <tbody>
-                <% usuarios.forEach(u => { %>
-                <tr>
-                  <td><%= u.id_usuario %></td>
-                  <td><strong><%= u.nombre_usuario %></strong></td>
-                  <td><span class="badge <%= u.id_rol === 1 ? 'bg-danger' : 'bg-primary' %>"><%= u.id_rol === 1 ? 'Administrador' : 'Operador' %></span></td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-edit"
-                      data-id="<%= u.id_usuario %>"
-                      data-nombre="<%= encodeURIComponent(u.nombre_usuario) %>"
-                      data-rol="<%= u.id_rol %>">Editar</button>
-                    <% if (u.id_usuario !== currentUser.id) { %>
-                      <form action="/register/eliminar/<%= u.id_usuario %>" method="POST" class="d-inline form-eliminar">
-                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                      </form>
-                    <% } else { %>
-                      <span class="text-muted small">Tú</span>
-                    <% } %>
-                  </td>
-                </tr>
-                <% }) %>
+                <% usuarios.forEach(u=> { %>
+                  <tr>
+                    <td>
+                      <%= u.id_usuario %>
+                    </td>
+                    <td><strong>
+                        <%= u.nombre_usuario %>
+                      </strong></td>
+                    <td><span class="badge <%= u.id_rol === 1 ? 'bg-danger' : 'bg-primary' %>">
+                        <%= u.id_rol===1 ? 'Administrador' : 'Operador' %>
+                      </span></td>
+                    <td>
+                      <button class="btn btn-warning btn-sm btn-edit" data-id="<%= u.id_usuario %>"
+                        data-nombre="<%= encodeURIComponent(u.nombre_usuario) %>"
+                        data-rol="<%= u.id_rol %>">Editar</button>
+                      <% if (u.id_usuario !==currentUser.id) { %>
+                        <form action="/register/eliminar/<%= u.id_usuario %>" method="POST"
+                          class="d-inline form-eliminar">
+                          <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                        <% } else { %>
+                          <span class="text-muted small">Tú</span>
+                          <% } %>
+                    </td>
+                  </tr>
+                  <% }) %>
               </tbody>
             </table>
           </div>
@@ -219,7 +251,7 @@
        ================================================================================= -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
+
   <script>
     // =================================================================================
     // INICIALIZACIÓN
@@ -273,15 +305,15 @@
         const tipo = "<%= alert %>".trim();
 
         const alertas = {
-          success:     { icon: 'success',  title: '¡Usuario creado correctamente!',     color: '#28a745' },
-          edited:      { icon: 'success',  title: '¡Usuario actualizado correctamente!', color: '#28a745' },
+          success: { icon: 'success', title: '¡Usuario creado correctamente!', color: '#28a745' },
+          edited: { icon: 'success', title: '¡Usuario actualizado correctamente!', color: '#28a745' },
           edited_no_pass: { icon: 'success', title: '¡Usuario actualizado correctamente!', color: '#28a745' },
-          deleted:     { icon: 'success',  title: '¡Usuario eliminado correctamente!',   color: '#28a745' },
-          userexists:  { icon: 'warning', title: 'Este nombre de usuario ya existe',     color: '#ffc107' },
-          nameexists:  { icon: 'warning', title: 'Este nombre ya está en uso por otro usuario', color: '#ffc107' },
-          selfdelete:  { icon: 'warning', title: 'No puedes eliminarte a ti mismo',      color: '#ffc107' },
-          empty:       { icon: 'warning', title: 'Completa todos los campos',           color: '#ffc107' },
-          error:       { icon: 'error',   title: 'Ocurrió un error inesperado',         color: '#dc3545' }
+          deleted: { icon: 'success', title: '¡Usuario eliminado correctamente!', color: '#28a745' },
+          userexists: { icon: 'warning', title: 'Este nombre de usuario ya existe', color: '#ffc107' },
+          nameexists: { icon: 'warning', title: 'Este nombre ya está en uso por otro usuario', color: '#ffc107' },
+          selfdelete: { icon: 'warning', title: 'No puedes eliminarte a ti mismo', color: '#ffc107' },
+          empty: { icon: 'warning', title: 'Completa todos los campos', color: '#ffc107' },
+          error: { icon: 'error', title: 'Ocurrió un error inesperado', color: '#dc3545' }
         };
 
         const config = alertas[tipo] || alertas.error;
@@ -301,22 +333,22 @@
       });
     <% } %>
 
-    // =================================================================================
-    // LOGOUT
-    // =================================================================================
-    async function logout() {
-      await fetch("/logout", { method: "POST", credentials: "include" });
-      window.location.href = "/login";
-    }
+      // =================================================================================
+      // LOGOUT
+      // =================================================================================
+      async function logout() {
+        await fetch("/logout", { method: "POST", credentials: "include" });
+        window.location.href = "/login";
+      }
 
     // =================================================================================
     // ELIMINAR USUARIO
     // =================================================================================
     document.querySelectorAll('.form-eliminar').forEach(form => {
-      form.addEventListener('submit', function(e) {
+      form.addEventListener('submit', function (e) {
         e.preventDefault();
         const nombreUsuario = this.closest('tr').querySelector('strong').innerText;
-        
+
         Swal.fire({
           title: `¿Eliminar a "${nombreUsuario}"?`,
           text: "Esta acción no se puede deshacer.",
@@ -335,4 +367,5 @@
     });
   </script>
 </body>
+
 </html>

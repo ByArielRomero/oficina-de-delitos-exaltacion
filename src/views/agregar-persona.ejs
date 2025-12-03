@@ -1,718 +1,633 @@
 <!DOCTYPE html>
 <html lang="es" data-current-user="<%= JSON.stringify(currentUser || null) %>">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Agregar Persona - OVD</title>
 
-    <!-- Bootstrap y estilos -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
-    />
-    <link rel="stylesheet" href="/css/style.css" />
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agregar Persona - OVD</title>
 
-  <body>
-    <!-- =================================================================================
+  <!-- Bootstrap y estilos -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+  <!-- =================================================================================
          NAVBAR
          ================================================================================= -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="/dashboard">
-          <i class="bi bi-shield-check"></i> OVD - Exaltación de la Cruz
-        </a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/dashboard">
+        <i class="bi bi-shield-check"></i> OVD - Exaltación de la Cruz
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav me-auto">
-            <li class="nav-item">
-              <a class="nav-link" href="/dashboard">
-                <i class="bi bi-house-door"></i> Dashboard
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/dashboard">
+              <i class="bi bi-house-door"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/agregar-persona">
+              <i class="bi bi-person-plus"></i> Agregar Persona
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/agregar-caso">
+              <i class="bi bi-file-earmark-plus"></i> Agregar Caso
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/lista-casos">
+              <i class="bi bi-list-ul"></i> Lista de Casos
+            </a>
+          </li>
+        </ul>
+
+        <div class="dropdown me-3">
+          <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            <i class="bi bi-person-circle"></i>
+            <span id="currentUser">
+              <% if (currentUser) { %>
+                <%= currentUser.nombre %>
+                  <small class="text-light-50">
+                    (<%= currentUser.rol===1 ? 'Admin' : 'Operador' %>)
+                  </small>
+                  <% } else { %>
+                    Usuario
+                    <% } %>
+            </span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <a class="dropdown-item" href="/register">
+                <i class="bi bi-gear"></i> Configuración
               </a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link active" href="/agregar-persona">
-                <i class="bi bi-person-plus"></i> Agregar Persona
-              </a>
+            <li>
+              <hr class="dropdown-divider" />
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/agregar-caso">
-                <i class="bi bi-file-earmark-plus"></i> Agregar Caso
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/lista-casos">
-                <i class="bi bi-list-ul"></i> Lista de Casos
-              </a>
+            <li>
+              <button class="dropdown-item text-danger" onclick="logout()">
+                <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+              </button>
             </li>
           </ul>
-
-          <div class="dropdown me-3">
-            <button
-              class="btn btn-outline-light dropdown-toggle"
-              type="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              <i class="bi bi-person-circle"></i>
-              <span id="currentUser">
-                <% if (currentUser) { %>
-                  <%= currentUser.nombre %>
-                  <small class="text-light-50">
-                    (<%= currentUser.rol === 1 ? 'Admin' : 'Operador' %>)
-                  </small>
-                <% } else { %>
-                  Usuario
-                <% } %>
-              </span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li>
-                <a class="dropdown-item" href="/register">
-                  <i class="bi bi-gear"></i> Configuración
-                </a>
-              </li>
-              <li><hr class="dropdown-divider" /></li>
-              <li>
-                <button class="dropdown-item text-danger" onclick="logout()">
-                  <i class="bi bi-box-arrow-right"></i> Cerrar sesión
-                </button>
-              </li>
-            </ul>
-          </div>
         </div>
       </div>
-    </nav>
+    </div>
+  </nav>
 
-    <!-- =================================================================================
+  <!-- =================================================================================
          CONTENIDO PRINCIPAL
          ================================================================================= -->
-    <div class="container py-4">
-      <div class="row justify-content-center">
-        <div class="col-lg-8">
-          <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <h4 class="mb-0">
-                <i class="bi bi-person-plus"></i> Agregar Nueva Persona
-                <i
-                  class="bi bi-question-circle text-muted ms-2"
-                  style="font-size: 0.8em; cursor: pointer"
-                  data-bs-toggle="tooltip"
-                  data-bs-html="true"
-                  data-bs-delay='{"show":0,"hide":2000}'
-                  title="Complete este formulario para registrar un nuevo ciudadano en la base de datos. Asegúrese de ingresar el DNI y Teléfono correctamente para evitar duplicados.<br><br><a href='https://drive.google.com/file/d/1iumMZIi8rT8Rbm31DIsc7DjLBCYBulPV/view?usp=drive_link' target='_blank' style='color: #fff; text-decoration: underline;'>Ver video tutorial</a>"
-                ></i>
-              </h4>
-              <button
-                class="btn btn-outline-primary"
-                type="button"
-                data-bs-toggle="modal"
-                data-bs-target="#modalListaPersonas"
-              >
-                <i class="bi bi-list-ul"></i> Ver/Gestionar Personas
-              </button>
-            </div>
-            <div class="card-body">
-              <small class="text-danger mb-3 d-block">* los campos marcados con * son obligatorios</small>
-              <form id="formPersona">
-                <div class="row">
-                  <div class="col-md-6 mb-3">
-                    <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
-                    <input type="text" name="nombre" class="form-control" id="nombre" required />
-                  </div>
-                  <div class="col-md-6 mb-3">
-                    <label for="apellido" class="form-label">Apellido <span class="text-danger">*</span></label>
-                    <input type="text" name="apellido" class="form-control" id="apellido" required />
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-md-6 mb-3">
-                    <label for="dni" class="form-label">DNI <span class="text-danger">*</span></label>
-                    <input
-                      type="text"
-                      name="dni"
-                      class="form-control"
-                      placeholder="7, 8 o 9 digitos"
-                      required
-                      minlength="7"
-                      maxlength="9"
-                      pattern="[0-9]{7,9}"
-                      title="Solo números, de 7, 8 o 9 digitos"
-                      id="dni"
-                    />
-                    <small class="text-muted">Ej: 44888777</small>
-                  </div>
-                  <div class="col-md-6 mb-3">
-                    <label for="telefono" class="form-label">Teléfono <span class="text-danger">*</span></label>
-                    <input
-                      type="tel"
-                      name="telefono"
-                      class="form-control"
-                      placeholder="8 a 15 dígitos"
-                      required
-                      minlength="8"
-                      maxlength="15"
-                      pattern="\d{8,15}"
-                      title="Solo números, de 8 a 15 dígitos"
-                      id="telefono"
-                    />
-                    <small class="text-muted">Ej: 1132323232 ,sin 0 y 15</small>
-                  </div>
-                </div>
-                <div class="row">
-                  <!-- Dirección dividida: Calle y Altura -->
-                  <div class="col-md-6 mb-3">
-                    <label for="calle" class="form-label">Calle <span class="text-danger">*</span></label>
-                    <input
-                      type="text"
-                      class="form-control"
-                      id="calle"
-                      name="calle"
-                      required
-                      placeholder="Ej: San Martín"
-                    />
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="altura" class="form-label">Número <span class="text-danger">*</span></label>
-                    <input
-                      type="number"
-                      class="form-control"
-                      id="altura"
-                      name="altura"
-                      required
-                      placeholder="123"
-                    />
-                  </div>
-                  <div class="col-md-2 mb-3 d-flex align-items-end">
-                    <div class="form-check mb-2">
-                      <input class="form-check-input" type="checkbox" id="sinNumero" name="sinNumero">
-                      <label class="form-check-label" for="sinNumero">S/N</label>
-                    </div>
-                  </div>
-
-                  <div class="col-md-6 mb-3">
-                    <label for="genero" class="form-label">Género <span class="text-danger">*</span></label>
-                    <select class="form-select" id="genero" name="genero" required>
-                      <option value="">Seleccione un género</option>
-                      <option value="Masculino">Masculino</option>
-                      <option value="Femenino">Femenino</option>
-                      <option value="Otro">Otro</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- SELECT ZONA -->
-                <div class="mb-3">
-                  <label for="zona" class="form-label">Zona <span class="text-danger">*</span></label>
-                  <div class="input-group">
-                    <select class="form-select" id="zona" name="zona" required>
-                      <option value="">Seleccione una zona</option>
-                      <% zonas.forEach(z => { %>
-                        <option value="<%= z.id_zona %>"><%= z.nombre_zona %></option>
-                      <% }) %>
-                    </select>
-                    <button
-                      class="btn btn-outline-secondary"
-                      type="button"
-                      data-bs-toggle="modal"
-                      data-bs-target="#modalAgregarZona"
-                    >
-                      <i class="bi bi-plus-circle"></i> Agregar Zona
-                    </button>
-                  </div>
-                </div>
-
-                <div class="mb-3">
-                  <label for="email" class="form-label">Email <span class="text-muted">(Opcional)</span></label>
-                  <input
-                    type="email"
-                    name="email"
-                    class="form-control"
-                    id="email"
-                    placeholder="ejemplo@gmail.com"
-                    title="Debe ser un dominio ejemplo@gmail.com"
-                  />
-                </div>
-
-                <div class="d-grid gap-2">
-                  <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save"></i> Guardar Persona
-                  </button>
-                  <a href="/dashboard" class="btn btn-secondary">
-                    <i class="bi bi-x-circle"></i> Cancelar
-                  </a>
-                </div>
-              </form>
-            </div>
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+              <i class="bi bi-person-plus"></i> Agregar Nueva Persona
+              <i class="bi bi-question-circle text-muted ms-2" style="font-size: 0.8em; cursor: pointer"
+                data-bs-toggle="tooltip" data-bs-html="true" data-bs-delay='{"show":0,"hide":2000}'
+                title="Complete este formulario para registrar un nuevo ciudadano en la base de datos. Asegúrese de ingresar el DNI y Teléfono correctamente para evitar duplicados.<br><br><a href='https://drive.google.com/file/d/1iumMZIi8rT8Rbm31DIsc7DjLBCYBulPV/view?usp=drive_link' target='_blank' style='color: #fff; text-decoration: underline;'>Ver video tutorial</a>"></i>
+            </h4>
+            <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
+              data-bs-target="#modalListaPersonas">
+              <i class="bi bi-list-ul"></i> Ver/Gestionar Personas
+            </button>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- =================================================================================
-         MODALES
-         ================================================================================= -->
-
-    <!-- MODAL AGREGAR ZONA -->
-    <div class="modal fade" id="modalAgregarZona" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Agregar Nueva Zona</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <form id="formZona">
-              <div class="mb-3">
-                <label for="nombreZona" class="form-label">Nombre de la Zona</label>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-primary flex-shrink-0 ms-auto"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalGestionarZonas"
-                >
-                  <i class="bi bi-list-ul"></i> Gestionar Zonas
-                </button>
-                <input type="text" class="form-control" id="nombreZona" required />
+          <div class="card-body">
+            <small class="text-danger mb-3 d-block">* los campos marcados con * son obligatorios</small>
+            <form id="formPersona">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+                  <input type="text" name="nombre" class="form-control" id="nombre" required />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="apellido" class="form-label">Apellido <span class="text-danger">*</span></label>
+                  <input type="text" name="apellido" class="form-control" id="apellido" required />
+                </div>
               </div>
-              <button type="submit" class="btn btn-primary w-100">
-                <i class="bi bi-plus-circle"></i> Agregar
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL GESTIONAR ZONAS -->
-    <div class="modal fade" id="modalGestionarZonas" tabindex="-1">
-      <div class="modal-dialog modal-md">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title"><i class="bi bi-geo-alt"></i> Gestionar Zonas</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <!-- Barra de búsqueda -->
-            <div class="mb-3">
-              <input
-                type="text"
-                class="form-control"
-                id="searchZonas"
-                placeholder="Buscar por nombre de zona..."
-              />
-            </div>
-            <!-- Tabla -->
-            <div id="listaZonas" class="table-responsive">
-              <table class="table table-striped">
-                <thead>
-                  <tr>
-                    <th style="width: 80%;">Nombre</th>
-                    <th style="width: 20%; text-align: right;">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodyZonas">
-                  <!-- Dinámico -->
-                </tbody>
-              </table>
-            </div>
-            <!-- Form edición (oculto) -->
-            <div id="formEdicionZona" class="mt-4" style="display: none">
-              <h6>Editar Zona</h6>
-              <form id="editFormZona">
-                <input type="hidden" id="editIdZona" name="id" />
-                <div class="mb-3">
-                  <label class="form-label">Nombre de la Zona</label>
-                  <input type="text" name="nombreZona" class="form-control" required />
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="dni" class="form-label">DNI <span class="text-danger">*</span></label>
+                  <input type="text" name="dni" class="form-control" placeholder="7, 8 o 9 digitos" required
+                    minlength="7" maxlength="9" pattern="[0-9]{7,9}" title="Solo números, de 7, 8 o 9 digitos"
+                    id="dni" />
+                  <small class="text-muted">Ej: 44888777</small>
                 </div>
-                <div class="d-grid gap-2">
-                  <button type="submit" class="btn btn-primary">Actualizar</button>
-                  <button type="button" class="btn btn-secondary" onclick="cancelarEdicionZona()">Cancelar</button>
+                <div class="col-md-6 mb-3">
+                  <label for="telefono" class="form-label">Teléfono <span class="text-danger">*</span></label>
+                  <input type="tel" name="telefono" class="form-control" placeholder="8 a 15 dígitos" required
+                    minlength="8" maxlength="15" pattern="\d{8,15}" title="Solo números, de 8 a 15 dígitos"
+                    id="telefono" />
+                  <small class="text-muted">Ej: 1132323232 ,sin 0 y 15</small>
                 </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL LISTA PERSONAS -->
-    <div class="modal fade" id="modalListaPersonas" tabindex="-1">
-      <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-          <div class="modal-header bg-secundary text-white">
-            <h5 class="modal-title"><i class="bi bi-people"></i> Gestionar Personas</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <!-- Barra de búsqueda -->
-            <div class="mb-3">
-              <input
-                type="text"
-                class="form-control"
-                id="searchPersonas"
-                placeholder="Buscar por nombre, apellido, DNI o teléfono..."
-              />
-            </div>
-
-            <!-- Tabla -->
-            <div class="table-responsive">
-              <table class="table table-striped table-hover align-middle">
-                <thead class="table-dark">
-                  <tr>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>DNI</th>
-                    <th>Teléfono</th>
-                    <th>Zona</th>
-                    <th>Email</th>
-                    <th>Género</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodyPersonas">
-                  <!-- Se llena con JS -->
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Paginación -->
-            <div class="d-flex justify-content-center mt-4">
-              <nav aria-label="Paginación de personas">
-                <ul class="pagination" id="paginacionPersonas">
-                  <!-- Generado por JS -->
-                </ul>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL EDITAR PERSONA -->
-    <div class="modal fade" id="modalEditarPersona" tabindex="-1">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header bg-warning text-dark">
-            <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Editar Persona</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <form id="formEditarPersonaReal">
-              <input type="hidden" id="idPersonaEditar" name="idPersonaEditar" />
-
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label>Nombre *</label>
-                  <input type="text" name="nombre" class="form-control" required />
+              </div>
+              <div class="row">
+                <!-- Dirección dividida: Calle y Altura -->
+                <div class="col-md-6 mb-3">
+                  <label for="calle" class="form-label">Calle <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="calle" name="calle" required
+                    placeholder="Ej: San Martín" />
                 </div>
-                <div class="col-md-6">
-                  <label>Apellido *</label>
-                  <input type="text" name="apellido" class="form-control" required />
+                <div class="col-md-4 mb-3">
+                  <label for="altura" class="form-label">Número <span class="text-danger">*</span></label>
+                  <input type="number" class="form-control" id="altura" name="altura" required placeholder="123" />
                 </div>
-                <div class="col-md-6">
-                  <label>DNI *</label>
-                  <input
-                    type="text"
-                    name="dni"
-                    class="form-control"
-                    maxlength="9"
-                    pattern="[0-9]{7,9}"
-                    placeholder="7, 8 o 9 digitos"
-                    title="Solo números, de 7, 8 o 9 digitos"
-                    required
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label>Teléfono *</label>
-                  <input
-                    type="tel"
-                    name="telefono"
-                    class="form-control"
-                    maxlength="15"
-                    required
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label>Calle *</label>
-                  <input type="text" name="calle" id="editCalle" class="form-control" required />
-                </div>
-                <div class="col-md-4">
-                  <label>Número *</label>
-                  <input type="number" name="altura" id="editAltura" class="form-control" required />
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
+                <div class="col-md-2 mb-3 d-flex align-items-end">
                   <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="editSinNumero" name="sinNumero">
-                    <label class="form-check-label" for="editSinNumero">S/N</label>
+                    <input class="form-check-input" type="checkbox" id="sinNumero" name="sinNumero">
+                    <label class="form-check-label" for="sinNumero">S/N</label>
                   </div>
                 </div>
-                <div class="col-md-6">
-                  <label>Género *</label>
-                  <select name="genero" class="form-select" required>
+
+                <div class="col-md-6 mb-3">
+                  <label for="genero" class="form-label">Género <span class="text-danger">*</span></label>
+                  <select class="form-select" id="genero" name="genero" required>
+                    <option value="">Seleccione un género</option>
                     <option value="Masculino">Masculino</option>
                     <option value="Femenino">Femenino</option>
                     <option value="Otro">Otro</option>
                   </select>
                 </div>
-                <div class="col-md-6">
-                  <label>Zona *</label>
-                  <select name="zona" class="form-select" required>
-                    <% zonas.forEach(z => { %>
-                      <option value="<%= z.id_zona %>"><%= z.nombre_zona %></option>
-                    <% }) %>
+              </div>
+
+              <!-- SELECT ZONA -->
+              <div class="mb-3">
+                <label for="zona" class="form-label">Zona <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <select class="form-select" id="zona" name="zona" required>
+                    <option value="">Seleccione una zona</option>
+                    <% zonas.forEach(z=> { %>
+                      <option value="<%= z.id_zona %>">
+                        <%= z.nombre_zona %>
+                      </option>
+                      <% }) %>
                   </select>
-                </div>
-                <div class="col-12">
-                  <label>Email (opcional)</label>
-                  <input type="email" name="email" class="form-control" />
+                  <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
+                    data-bs-target="#modalAgregarZona">
+                    <i class="bi bi-plus-circle"></i> Agregar Zona
+                  </button>
                 </div>
               </div>
 
-              <div class="mt-4 d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+              <div class="mb-3">
+                <label for="email" class="form-label">Email <span class="text-muted">(Opcional)</span></label>
+                <input type="email" name="email" class="form-control" id="email" placeholder="ejemplo@gmail.com"
+                  title="Debe ser un dominio ejemplo@gmail.com" />
+              </div>
+
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-save"></i> Guardar Persona
+                </button>
+                <a href="/dashboard" class="btn btn-secondary">
+                  <i class="bi bi-x-circle"></i> Cancelar
+                </a>
               </div>
             </form>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- =================================================================================
+  <!-- =================================================================================
+         MODALES
+         ================================================================================= -->
+
+  <!-- MODAL AGREGAR ZONA -->
+  <div class="modal fade" id="modalAgregarZona" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Agregar Nueva Zona</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formZona">
+            <div class="mb-3">
+              <label for="nombreZona" class="form-label">Nombre de la Zona</label>
+              <button type="button" class="btn btn-sm btn-outline-primary flex-shrink-0 ms-auto" data-bs-toggle="modal"
+                data-bs-target="#modalGestionarZonas">
+                <i class="bi bi-list-ul"></i> Gestionar Zonas
+              </button>
+              <input type="text" class="form-control" id="nombreZona" required />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-plus-circle"></i> Agregar
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL GESTIONAR ZONAS -->
+  <div class="modal fade" id="modalGestionarZonas" tabindex="-1">
+    <div class="modal-dialog modal-md">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-geo-alt"></i> Gestionar Zonas</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Barra de búsqueda -->
+          <div class="mb-3">
+            <input type="text" class="form-control" id="searchZonas" placeholder="Buscar por nombre de zona..." />
+          </div>
+          <!-- Tabla -->
+          <div id="listaZonas" class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th style="width: 80%;">Nombre</th>
+                  <th style="width: 20%; text-align: right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyZonas">
+                <!-- Dinámico -->
+              </tbody>
+            </table>
+          </div>
+          <!-- Form edición (oculto) -->
+          <div id="formEdicionZona" class="mt-4" style="display: none">
+            <h6>Editar Zona</h6>
+            <form id="editFormZona">
+              <input type="hidden" id="editIdZona" name="id" />
+              <div class="mb-3">
+                <label class="form-label">Nombre de la Zona</label>
+                <input type="text" name="nombreZona" class="form-control" required />
+              </div>
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Actualizar</button>
+                <button type="button" class="btn btn-secondary" onclick="cancelarEdicionZona()">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LISTA PERSONAS -->
+  <div class="modal fade" id="modalListaPersonas" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header bg-secundary text-white">
+          <h5 class="modal-title"><i class="bi bi-people"></i> Gestionar Personas</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Barra de búsqueda -->
+          <div class="mb-3">
+            <input type="text" class="form-control" id="searchPersonas"
+              placeholder="Buscar por nombre, apellido, DNI o teléfono..." />
+          </div>
+
+          <!-- Tabla -->
+          <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+              <thead class="table-dark">
+                <tr>
+                  <th>Nombre</th>
+                  <th>Apellido</th>
+                  <th>DNI</th>
+                  <th>Teléfono</th>
+                  <th>Zona</th>
+                  <th>Email</th>
+                  <th>Género</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyPersonas">
+                <!-- Se llena con JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginación -->
+          <div class="d-flex justify-content-center mt-4">
+            <nav aria-label="Paginación de personas">
+              <ul class="pagination" id="paginacionPersonas">
+                <!-- Generado por JS -->
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR PERSONA -->
+  <div class="modal fade" id="modalEditarPersona" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Editar Persona</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formEditarPersonaReal">
+            <input type="hidden" id="idPersonaEditar" name="idPersonaEditar" />
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label>Nombre *</label>
+                <input type="text" name="nombre" class="form-control" required />
+              </div>
+              <div class="col-md-6">
+                <label>Apellido *</label>
+                <input type="text" name="apellido" class="form-control" required />
+              </div>
+              <div class="col-md-6">
+                <label>DNI *</label>
+                <input type="text" name="dni" class="form-control" maxlength="9" pattern="[0-9]{7,9}"
+                  placeholder="7, 8 o 9 digitos" title="Solo números, de 7, 8 o 9 digitos" required />
+              </div>
+              <div class="col-md-6">
+                <label>Teléfono *</label>
+                <input type="tel" name="telefono" class="form-control" maxlength="15" required />
+              </div>
+              <div class="col-md-6">
+                <label>Calle *</label>
+                <input type="text" name="calle" id="editCalle" class="form-control" required />
+              </div>
+              <div class="col-md-4">
+                <label>Número *</label>
+                <input type="number" name="altura" id="editAltura" class="form-control" required />
+              </div>
+              <div class="col-md-2 d-flex align-items-end">
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" id="editSinNumero" name="sinNumero">
+                  <label class="form-check-label" for="editSinNumero">S/N</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label>Género *</label>
+                <select name="genero" class="form-select" required>
+                  <option value="Masculino">Masculino</option>
+                  <option value="Femenino">Femenino</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label>Zona *</label>
+                <select name="zona" class="form-select" required>
+                  <% zonas.forEach(z=> { %>
+                    <option value="<%= z.id_zona %>">
+                      <%= z.nombre_zona %>
+                    </option>
+                    <% }) %>
+                </select>
+              </div>
+              <div class="col-12">
+                <label>Email (opcional)</label>
+                <input type="email" name="email" class="form-control" />
+              </div>
+            </div>
+
+            <div class="mt-4 d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================================
          SCRIPTS
          ================================================================================= -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <script>
-      // =================================================================================
-      // LOGOUT
-      // =================================================================================
-      async function logout() {
-        try {
-          const response = await fetch("/logout", {
-            method: "POST",
-            credentials: "include",
-          });
-          if (response.ok) {
-            window.location.href = "/login?alert=logout";
-          } else {
-            Swal.fire("Error", "No se pudo cerrar la sesión", "error");
-          }
-        } catch (err) {
-          console.error(err);
-          Swal.fire("Error", "Hubo un problema al cerrar la sesión", "error");
-        }
-      }
-
-      // =================================================================================
-      // CURRENT USER & UTILS
-      // =================================================================================
-      const currentUserRaw = document.documentElement.getAttribute("data-current-user");
+  <script>
+    // =================================================================================
+    // LOGOUT
+    // =================================================================================
+    async function logout() {
       try {
-        window.currentUser = currentUserRaw ? JSON.parse(currentUserRaw) : null;
+        const response = await fetch("/logout", {
+          method: "POST",
+          credentials: "include",
+        });
+        if (response.ok) {
+          window.location.href = "/login?alert=logout";
+        } else {
+          Swal.fire("Error", "No se pudo cerrar la sesión", "error");
+        }
       } catch (err) {
-        console.error("Error parseando currentUser:", err);
-        window.currentUser = null;
+        console.error(err);
+        Swal.fire("Error", "Hubo un problema al cerrar la sesión", "error");
+      }
+    }
+
+    // =================================================================================
+    // CURRENT USER & UTILS
+    // =================================================================================
+    const currentUserRaw = document.documentElement.getAttribute("data-current-user");
+    try {
+      window.currentUser = currentUserRaw ? JSON.parse(currentUserRaw) : null;
+    } catch (err) {
+      console.error("Error parseando currentUser:", err);
+      window.currentUser = null;
+    }
+
+    if (window.currentUser && document.getElementById("currentUser")) {
+      document.getElementById("currentUser").textContent =
+        window.currentUser.nombre || window.currentUser.username || "Usuario";
+    }
+
+    // Limpia DNI y TELÉFONO automáticamente
+    document.querySelectorAll('input[name="dni"], input[name="telefono"]').forEach((input) => {
+      input.addEventListener("input", function () {
+        this.value = this.value.replace(/\D/g, "");
+        if (this.name === "dni") this.value = this.value.slice(0, 9);
+        if (this.name === "telefono") this.value = this.value.slice(0, 15);
+      });
+    });
+
+    // Limpia NOMBRE y APELLIDO (Solo letras y espacios)
+    document.querySelectorAll('input[name="nombre"], input[name="apellido"]').forEach((input) => {
+      input.addEventListener("input", function () {
+        // Reemplaza cualquier caracter que NO sea letra (incluyendo acentos) o espacio
+        this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+      });
+    });
+
+    // Checkbox S/N lógica (Formulario Agregar)
+    document.getElementById('sinNumero').addEventListener('change', function () {
+      const alturaInput = document.getElementById('altura');
+      if (this.checked) {
+        alturaInput.value = '';
+        alturaInput.disabled = true;
+        alturaInput.required = false;
+      } else {
+        alturaInput.disabled = false;
+        alturaInput.required = true;
+      }
+    });
+
+    // Checkbox S/N lógica (Formulario Editar)
+    document.getElementById('editSinNumero').addEventListener('change', function () {
+      const alturaInput = document.getElementById('editAltura');
+      if (this.checked) {
+        alturaInput.value = '';
+        alturaInput.disabled = true;
+        alturaInput.required = false;
+      } else {
+        alturaInput.disabled = false;
+        alturaInput.required = true;
+      }
+    });
+
+    // =================================================================================
+    // AGREGAR PERSONA (AJAX)
+    // =================================================================================
+    document.getElementById("formPersona").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData);
+
+      // Validación específica
+      let errores = [];
+      if (!data.nombre) errores.push("Falta el Nombre");
+      if (!data.apellido) errores.push("Falta el Apellido");
+
+      // Validar DNI (7 a 9 dígitos)
+      if (!data.dni || data.dni.length < 7 || data.dni.length > 9) {
+        errores.push("El DNI debe tener entre 7 y 9 dígitos");
       }
 
-      if (window.currentUser && document.getElementById("currentUser")) {
-        document.getElementById("currentUser").textContent =
-          window.currentUser.nombre || window.currentUser.username || "Usuario";
+      // Validar Teléfono (8 a 15 dígitos)
+      if (!data.telefono || data.telefono.length < 8 || data.telefono.length > 15) {
+        errores.push("El Teléfono debe tener entre 8 y 15 dígitos");
       }
 
-      // Limpia DNI y TELÉFONO automáticamente
-      document.querySelectorAll('input[name="dni"], input[name="telefono"]').forEach((input) => {
-        input.addEventListener("input", function () {
-          this.value = this.value.replace(/\D/g, "");
-          if (this.name === "dni") this.value = this.value.slice(0, 9);
-          if (this.name === "telefono") this.value = this.value.slice(0, 15);
+      if (!data.calle) errores.push("Falta la Calle");
+      if (!document.getElementById("sinNumero").checked && !data.altura) {
+        errores.push("Falta la Altura (o marque S/N)");
+      }
+      if (!data.genero) errores.push("Seleccione un Género");
+      if (!data.zona) errores.push("Seleccione una Zona");
+
+      if (errores.length > 0) {
+        Swal.fire({
+          title: "Datos incompletos o incorrectos",
+          html: `<ul class="text-start"><li>${errores.join("</li><li>")}</li></ul>`,
+          icon: "warning",
+          confirmButtonText: "Corregir"
         });
-      });
+        return;
+      }
 
-      // Limpia NOMBRE y APELLIDO (Solo letras y espacios)
-      document.querySelectorAll('input[name="nombre"], input[name="apellido"]').forEach((input) => {
-        input.addEventListener("input", function () {
-          // Reemplaza cualquier caracter que NO sea letra (incluyendo acentos) o espacio
-          this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+      try {
+        const response = await fetch("/agregar-persona", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+          credentials: "include"
         });
-      });
+        const result = await response.json();
 
-      // Checkbox S/N lógica (Formulario Agregar)
-      document.getElementById('sinNumero').addEventListener('change', function() {
-        const alturaInput = document.getElementById('altura');
-        if (this.checked) {
-          alturaInput.value = '';
-          alturaInput.disabled = true;
-          alturaInput.required = false;
-        } else {
-          alturaInput.disabled = false;
-          alturaInput.required = true;
-        }
-      });
-
-      // Checkbox S/N lógica (Formulario Editar)
-      document.getElementById('editSinNumero').addEventListener('change', function() {
-        const alturaInput = document.getElementById('editAltura');
-        if (this.checked) {
-          alturaInput.value = '';
-          alturaInput.disabled = true;
-          alturaInput.required = false;
-        } else {
-          alturaInput.disabled = false;
-          alturaInput.required = true;
-        }
-      });
-
-      // =================================================================================
-      // AGREGAR PERSONA (AJAX)
-      // =================================================================================
-      document.getElementById("formPersona").addEventListener("submit", async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const data = Object.fromEntries(formData);
-        
-        // Validación específica
-        let errores = [];
-        if (!data.nombre) errores.push("Falta el Nombre");
-        if (!data.apellido) errores.push("Falta el Apellido");
-        
-        // Validar DNI (7 a 9 dígitos)
-        if (!data.dni || data.dni.length < 7 || data.dni.length > 9) {
-          errores.push("El DNI debe tener entre 7 y 9 dígitos");
-        }
-        
-        // Validar Teléfono (8 a 15 dígitos)
-        if (!data.telefono || data.telefono.length < 8 || data.telefono.length > 15) {
-          errores.push("El Teléfono debe tener entre 8 y 15 dígitos");
-        }
-
-        if (!data.calle) errores.push("Falta la Calle");
-        if (!document.getElementById("sinNumero").checked && !data.altura) {
-          errores.push("Falta la Altura (o marque S/N)");
-        }
-        if (!data.genero) errores.push("Seleccione un Género");
-        if (!data.zona) errores.push("Seleccione una Zona");
-
-        if (errores.length > 0) {
+        if (result.success) {
           Swal.fire({
-            title: "Datos incompletos o incorrectos",
-            html: `<ul class="text-start"><li>${errores.join("</li><li>")}</li></ul>`,
-            icon: "warning",
-            confirmButtonText: "Corregir"
+            title: "¡Persona Agregada!",
+            text: "Se guardó correctamente. Redirigiendo a Agregar Caso...",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false
+          }).then(() => {
+            window.location.href = "/agregar-caso";
           });
-          return;
+        } else {
+          Swal.fire("Error", result.message, "error");
         }
+      } catch (error) {
+        console.error(error);
+        Swal.fire("Error", "No se pudo conectar con el servidor", "error");
+      }
+    });
 
-        try {
-          const response = await fetch("/agregar-persona", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-            credentials: "include"
-          });
-          const result = await response.json();
+    // =================================================================================
+    // GESTIÓN DE PERSONAS (MODAL)
+    // =================================================================================
+    const ITEMS_POR_PAGINA = 10;
+    let todasLasPersonas = [];
+    let paginaActualPersonas = 1;
 
-          if (result.success) {
-            Swal.fire({
-              title: "¡Persona Agregada!",
-              text: "Se guardó correctamente. Redirigiendo a Agregar Caso...",
-              icon: "success",
-              timer: 2000,
-              showConfirmButton: false
-            }).then(() => {
-              window.location.href = "/agregar-caso";
-            });
-          } else {
-            Swal.fire("Error", result.message, "error");
-          }
-        } catch (error) {
-          console.error(error);
-          Swal.fire("Error", "No se pudo conectar con el servidor", "error");
-        }
+    document.addEventListener("DOMContentLoaded", () => {
+      // Inicializar tooltips
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
       });
 
-      // =================================================================================
-      // GESTIÓN DE PERSONAS (MODAL)
-      // =================================================================================
-      const ITEMS_POR_PAGINA = 10;
-      let todasLasPersonas = [];
-      let paginaActualPersonas = 1;
+      // Event Listeners Personas
+      document.getElementById("modalListaPersonas").addEventListener("show.bs.modal", cargarPersonas);
+      document.getElementById("searchPersonas").addEventListener("input", aplicarFiltrosYPaginaPersonas);
 
-      document.addEventListener("DOMContentLoaded", () => {
-        // Inicializar tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-          return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
+      // Event Listeners Zonas
+      document.getElementById("modalGestionarZonas").addEventListener("show.bs.modal", cargarZonas);
+      document.getElementById("searchZonas").addEventListener("input", filtrarZonas);
+      document.getElementById("editFormZona").addEventListener("submit", editarZonaSubmit);
+    });
 
-        // Event Listeners Personas
-        document.getElementById("modalListaPersonas").addEventListener("show.bs.modal", cargarPersonas);
-        document.getElementById("searchPersonas").addEventListener("input", aplicarFiltrosYPaginaPersonas);
+    async function cargarPersonas() {
+      try {
+        // FIX: Added credentials: 'include'
+        const res = await fetch("/personas", { credentials: "include" });
+        const { personas } = await res.json();
+        todasLasPersonas = personas;
+        aplicarFiltrosYPaginaPersonas();
+      } catch (err) {
+        console.error("Error cargando personas:", err);
+        Swal.fire("Error", "No se pudieron cargar las personas", "error");
+      }
+    }
 
-        // Event Listeners Zonas
-        document.getElementById("modalGestionarZonas").addEventListener("show.bs.modal", cargarZonas);
-        document.getElementById("searchZonas").addEventListener("input", filtrarZonas);
-        document.getElementById("editFormZona").addEventListener("submit", editarZonaSubmit);
+    function aplicarFiltrosYPaginaPersonas() {
+      const search = document.getElementById("searchPersonas").value.toLowerCase().trim();
+      let filasVisibles = todasLasPersonas.filter((p) => {
+        return (
+          p.nombre.toLowerCase().includes(search) ||
+          p.apellido.toLowerCase().includes(search) ||
+          p.dni.includes(search) ||
+          (p.telefono && p.telefono.includes(search))
+        );
       });
 
-      async function cargarPersonas() {
-        try {
-          // FIX: Added credentials: 'include'
-          const res = await fetch("/personas", { credentials: "include" });
-          const { personas } = await res.json();
-          todasLasPersonas = personas;
-          aplicarFiltrosYPaginaPersonas();
-        } catch (err) {
-          console.error("Error cargando personas:", err);
-          Swal.fire("Error", "No se pudieron cargar las personas", "error");
-        }
+      const totalPaginas = Math.ceil(filasVisibles.length / ITEMS_POR_PAGINA);
+      paginaActualPersonas = 1;
+
+      renderizarPersonas(filasVisibles.slice(0, ITEMS_POR_PAGINA));
+      generarPaginacionPersonas(totalPaginas, filasVisibles);
+    }
+
+    function renderizarPersonas(personas) {
+      const tbody = document.getElementById("tbodyPersonas");
+      tbody.innerHTML = "";
+
+      if (personas.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No se encontraron personas</td></tr>`;
+        return;
       }
 
-      function aplicarFiltrosYPaginaPersonas() {
-        const search = document.getElementById("searchPersonas").value.toLowerCase().trim();
-        let filasVisibles = todasLasPersonas.filter((p) => {
-          return (
-            p.nombre.toLowerCase().includes(search) ||
-            p.apellido.toLowerCase().includes(search) ||
-            p.dni.includes(search) ||
-            (p.telefono && p.telefono.includes(search))
-          );
-        });
-
-        const totalPaginas = Math.ceil(filasVisibles.length / ITEMS_POR_PAGINA);
-        paginaActualPersonas = 1;
-
-        renderizarPersonas(filasVisibles.slice(0, ITEMS_POR_PAGINA));
-        generarPaginacionPersonas(totalPaginas, filasVisibles);
-      }
-
-      function renderizarPersonas(personas) {
-        const tbody = document.getElementById("tbodyPersonas");
-        tbody.innerHTML = "";
-
-        if (personas.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No se encontraron personas</td></tr>`;
-          return;
-        }
-
-        personas.forEach((p) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
+      personas.forEach((p) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
             <td><strong>${p.nombre}</strong></td>
             <td>${p.apellido}</td>
             <td>${p.dni}</td>
@@ -724,431 +639,431 @@
               <button class="btn btn-warning btn-sm" onclick="abrirModalEditar(${p.id_persona})">
                  ✏️
                </button>
-              ${
-                window.currentUser && window.currentUser.rol === 1
-                  ? `<button class="btn btn-danger btn-sm" onclick="borrarPersona(${p.id_persona})"><i class="bi bi-trash"></i></button>`
-                  : ""
-              }
+              ${window.currentUser && window.currentUser.rol === 1
+            ? `<button class="btn btn-danger btn-sm" onclick="borrarPersona(${p.id_persona})"><i class="bi bi-trash"></i></button>`
+            : ""
+          }
             </td>
           `;
-          tbody.appendChild(tr);
-        });
-      }
+        tbody.appendChild(tr);
+      });
+    }
 
-      function generarPaginacionPersonas(totalPaginas, filasVisibles) {
-        const paginacion = document.getElementById("paginacionPersonas");
-        paginacion.innerHTML = "";
+    function generarPaginacionPersonas(totalPaginas, filasVisibles) {
+      const paginacion = document.getElementById("paginacionPersonas");
+      paginacion.innerHTML = "";
 
-        if (totalPaginas <= 1) return;
+      if (totalPaginas <= 1) return;
 
-        // Anterior
-        paginacion.innerHTML += `
+      // Anterior
+      paginacion.innerHTML += `
           <li class="page-item ${paginaActualPersonas === 1 ? "disabled" : ""}">
             <a class="page-link" href="#" onclick="cambiarPaginaPersonas(${paginaActualPersonas - 1}, event)">Anterior</a>
           </li>`;
 
-        // Números
-        for (let i = 1; i <= totalPaginas; i++) {
-          paginacion.innerHTML += `
+      // Números
+      for (let i = 1; i <= totalPaginas; i++) {
+        paginacion.innerHTML += `
             <li class="page-item ${i === paginaActualPersonas ? "active" : ""}">
               <a class="page-link" href="#" onclick="cambiarPaginaPersonas(${i}, event)">${i}</a>
             </li>`;
-        }
+      }
 
-        // Siguiente
-        paginacion.innerHTML += `
+      // Siguiente
+      paginacion.innerHTML += `
           <li class="page-item ${paginaActualPersonas === totalPaginas ? "disabled" : ""}">
             <a class="page-link" href="#" onclick="cambiarPaginaPersonas(${paginaActualPersonas + 1}, event)">Siguiente</a>
           </li>`;
-      }
+    }
 
-      window.cambiarPaginaPersonas = function (pag, event) {
-        event.preventDefault();
-        if (pag < 1 || pag > Math.ceil(todasLasPersonas.length / ITEMS_POR_PAGINA)) return;
+    window.cambiarPaginaPersonas = function (pag, event) {
+      event.preventDefault();
+      if (pag < 1 || pag > Math.ceil(todasLasPersonas.length / ITEMS_POR_PAGINA)) return;
 
-        paginaActualPersonas = pag;
-        const search = document.getElementById("searchPersonas").value.toLowerCase().trim();
-        let filasVisibles = todasLasPersonas.filter((p) => {
-          return (
-            p.nombre.toLowerCase().includes(search) ||
-            p.apellido.toLowerCase().includes(search) ||
-            p.dni.includes(search) ||
-            (p.telefono && p.telefono.includes(search))
-          );
-        });
+      paginaActualPersonas = pag;
+      const search = document.getElementById("searchPersonas").value.toLowerCase().trim();
+      let filasVisibles = todasLasPersonas.filter((p) => {
+        return (
+          p.nombre.toLowerCase().includes(search) ||
+          p.apellido.toLowerCase().includes(search) ||
+          p.dni.includes(search) ||
+          (p.telefono && p.telefono.includes(search))
+        );
+      });
 
-        const inicio = (pag - 1) * ITEMS_POR_PAGINA;
-        const fin = inicio + ITEMS_POR_PAGINA;
+      const inicio = (pag - 1) * ITEMS_POR_PAGINA;
+      const fin = inicio + ITEMS_POR_PAGINA;
 
-        renderizarPersonas(filasVisibles.slice(inicio, fin));
-        generarPaginacionPersonas(Math.ceil(filasVisibles.length / ITEMS_POR_PAGINA), filasVisibles);
-      };
+      renderizarPersonas(filasVisibles.slice(inicio, fin));
+      generarPaginacionPersonas(Math.ceil(filasVisibles.length / ITEMS_POR_PAGINA), filasVisibles);
+    };
 
-      // =================================================================================
-      // EDICIÓN DE PERSONA
-      // =================================================================================
-      window.abrirModalEditar = function (id) {
-        const persona = todasLasPersonas.find((p) => p.id_persona === id);
-        if (!persona) return;
+    // =================================================================================
+    // EDICIÓN DE PERSONA
+    // =================================================================================
+    window.abrirModalEditar = function (id) {
+      const persona = todasLasPersonas.find((p) => p.id_persona === id);
+      if (!persona) return;
 
-        // Cerrar modal lista
-        bootstrap.Modal.getInstance(document.getElementById("modalListaPersonas"))?.hide();
+      // Cerrar modal lista
+      bootstrap.Modal.getInstance(document.getElementById("modalListaPersonas"))?.hide();
 
-        // Rellenar form
-        const form = document.getElementById("formEditarPersonaReal");
-        form.idPersonaEditar.value = persona.id_persona;
-        form.nombre.value = persona.nombre;
-        form.apellido.value = persona.apellido;
-        form.dni.value = persona.dni;
-        form.telefono.value = persona.telefono || "";
-        form.email.value = persona.email || "";
-        form.genero.value = persona.genero;
-        form.zona.value = persona.id_zona || ""; 
+      // Rellenar form
+      const form = document.getElementById("formEditarPersonaReal");
+      form.idPersonaEditar.value = persona.id_persona;
+      form.nombre.value = persona.nombre;
+      form.apellido.value = persona.apellido;
+      form.dni.value = persona.dni;
+      form.telefono.value = persona.telefono || "";
+      form.email.value = persona.email || "";
+      form.genero.value = persona.genero;
+      form.zona.value = persona.id_zona || "";
 
-        // Parsear dirección
-        const editCalle = document.getElementById("editCalle");
-        const editAltura = document.getElementById("editAltura");
-        const editSinNumero = document.getElementById("editSinNumero");
+      // Parsear dirección
+      const editCalle = document.getElementById("editCalle");
+      const editAltura = document.getElementById("editAltura");
+      const editSinNumero = document.getElementById("editSinNumero");
 
-        if (persona.calle) {
-           editCalle.value = persona.calle;
-           if (persona.numero_o_sn === "S/N" || persona.numero_o_sn === "s/n") {
-             editAltura.value = "";
-             editSinNumero.checked = true;
-             editAltura.disabled = true;
-             editAltura.required = false;
-           } else {
-             editAltura.value = persona.numero_o_sn;
-             editSinNumero.checked = false;
-             editAltura.disabled = false;
-             editAltura.required = true;
-           }
+      if (persona.calle) {
+        editCalle.value = persona.calle;
+        if (persona.numero_o_sn === "S/N" || persona.numero_o_sn === "s/n") {
+          editAltura.value = "";
+          editSinNumero.checked = true;
+          editAltura.disabled = true;
+          editAltura.required = false;
         } else {
-          // Fallback legacy
-          const direccion = persona.direccion || "";
-          if (direccion.toLowerCase().endsWith("s/n")) {
-            editCalle.value = direccion.replace(/\s?s\/n$/i, "").trim();
-            editAltura.value = "";
-            editSinNumero.checked = true;
-            editAltura.disabled = true;
-            editAltura.required = false;
+          editAltura.value = persona.numero_o_sn;
+          editSinNumero.checked = false;
+          editAltura.disabled = false;
+          editAltura.required = true;
+        }
+      } else {
+        // Fallback legacy
+        const direccion = persona.direccion || "";
+        if (direccion.toLowerCase().endsWith("s/n")) {
+          editCalle.value = direccion.replace(/\s?s\/n$/i, "").trim();
+          editAltura.value = "";
+          editSinNumero.checked = true;
+          editAltura.disabled = true;
+          editAltura.required = false;
+        } else {
+          const match = direccion.match(/^(.*)\s+(\d+)$/);
+          if (match) {
+            editCalle.value = match[1];
+            editAltura.value = match[2];
+            editSinNumero.checked = false;
+            editAltura.disabled = false;
+            editAltura.required = true;
           } else {
-            const match = direccion.match(/^(.*)\s+(\d+)$/);
-            if (match) {
-              editCalle.value = match[1];
-              editAltura.value = match[2];
-              editSinNumero.checked = false;
-              editAltura.disabled = false;
-              editAltura.required = true;
-            } else {
-              editCalle.value = direccion;
-              editAltura.value = "";
-              editSinNumero.checked = false;
-              editAltura.disabled = false;
-              editAltura.required = true;
-            }
+            editCalle.value = direccion;
+            editAltura.value = "";
+            editSinNumero.checked = false;
+            editAltura.disabled = false;
+            editAltura.required = true;
           }
         }
+      }
 
-        new bootstrap.Modal(document.getElementById("modalEditarPersona")).show();
-      };
+      new bootstrap.Modal(document.getElementById("modalEditarPersona")).show();
+    };
 
-      document.getElementById("formEditarPersonaReal").addEventListener("submit", async function (e) {
-        e.preventDefault();
-        const id = document.getElementById("idPersonaEditar").value;
-        const formData = new FormData(this);
-        const data = Object.fromEntries(formData);
+    document.getElementById("formEditarPersonaReal").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const id = document.getElementById("idPersonaEditar").value;
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData);
 
-        // Validación específica Edición
-        let errores = [];
-        if (!data.nombre) errores.push("Falta el Nombre");
-        if (!data.apellido) errores.push("Falta el Apellido");
-        
-        if (!data.dni || data.dni.length < 7 || data.dni.length > 9) {
-          errores.push("El DNI debe tener entre 7 y 9 dígitos");
+      // Validación específica Edición
+      let errores = [];
+      if (!data.nombre) errores.push("Falta el Nombre");
+      if (!data.apellido) errores.push("Falta el Apellido");
+
+      if (!data.dni || data.dni.length < 7 || data.dni.length > 9) {
+        errores.push("El DNI debe tener entre 7 y 9 dígitos");
+      }
+
+      if (!data.telefono || data.telefono.length < 8 || data.telefono.length > 15) {
+        errores.push("El Teléfono debe tener entre 8 y 15 dígitos");
+      }
+
+      if (!data.calle) errores.push("Falta la Calle");
+      if (!document.getElementById("editSinNumero").checked && !data.altura) {
+        errores.push("Falta la Altura (o marque S/N)");
+      }
+
+      if (errores.length > 0) {
+        Swal.fire({
+          title: "Datos incorrectos",
+          html: `<ul class="text-start"><li>${errores.join("</li><li>")}</li></ul>`,
+          icon: "warning",
+          confirmButtonText: "Corregir"
+        });
+        return;
+      }
+
+      try {
+        const res = await fetch(`/personas/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+          credentials: "include"
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          Swal.fire("¡Listo!", "Persona actualizada", "success");
+          bootstrap.Modal.getInstance(document.getElementById("modalEditarPersona")).hide();
+          cargarPersonas();
+        } else {
+          Swal.fire("Error", result.message || "No se pudo guardar", "error");
         }
-        
-        if (!data.telefono || data.telefono.length < 8 || data.telefono.length > 15) {
-          errores.push("El Teléfono debe tener entre 8 y 15 dígitos");
-        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire("Error", "No se pudo conectar", "error");
+      }
+    });
 
-        if (!data.calle) errores.push("Falta la Calle");
-        if (!document.getElementById("editSinNumero").checked && !data.altura) {
-          errores.push("Falta la Altura (o marque S/N)");
-        }
+    // =================================================================================
+    // BORRAR PERSONA
+    // =================================================================================
+    window.borrarPersona = async function (id) {
+      const persona = todasLasPersonas.find(p => p.id_persona === id);
+      const confirm = await Swal.fire({
+        title: `¿Eliminar a ${persona.nombre} ${persona.apellido}?`,
+        text: "Esta acción no se puede deshacer.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonText: "Cancelar",
+        confirmButtonText: "Sí, eliminar"
+      });
 
-        if (errores.length > 0) {
-          Swal.fire({
-            title: "Datos incorrectos",
-            html: `<ul class="text-start"><li>${errores.join("</li><li>")}</li></ul>`,
-            icon: "warning",
-            confirmButtonText: "Corregir"
-          });
-          return;
-        }
-
+      if (confirm.isConfirmed) {
         try {
           const res = await fetch(`/personas/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
+            method: "DELETE",
             credentials: "include"
           });
           const result = await res.json();
 
           if (result.success) {
-            Swal.fire("¡Listo!", "Persona actualizada", "success");
-            bootstrap.Modal.getInstance(document.getElementById("modalEditarPersona")).hide();
-            cargarPersonas(); 
+            Swal.fire("Eliminado", "Persona movida a eliminados. Puede restaurarla desde Configuración > Ver Eliminados.", "success");
+            cargarPersonas();
           } else {
-            Swal.fire("Error", result.message || "No se pudo guardar", "error");
+            Swal.fire("Error", result.message, "error");
           }
         } catch (err) {
-          console.error(err);
-          Swal.fire("Error", "No se pudo conectar", "error");
-        }
-      });
-
-      // =================================================================================
-      // BORRAR PERSONA
-      // =================================================================================
-      window.borrarPersona = async function(id) {
-        const persona = todasLasPersonas.find(p => p.id_persona === id);
-        const confirm = await Swal.fire({
-          title: `¿Eliminar a ${persona.nombre} ${persona.apellido}?`,
-          text: "Esta acción no se puede deshacer.",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          cancelButtonText: "Cancelar",
-          confirmButtonText: "Sí, eliminar"
-        });
-
-        if (confirm.isConfirmed) {
-          try {
-            const res = await fetch(`/personas/${id}`, {
-              method: "DELETE",
-              credentials: "include"
-            });
-            const result = await res.json();
-            
-            if (result.success) {
-              Swal.fire("Eliminado", "Persona eliminada correctamente", "success");
-              cargarPersonas();
-            } else {
-              Swal.fire("Error", result.message, "error");
-            }
-          } catch (err) {
-            Swal.fire("Error", "No se pudo eliminar", "error");
-          }
-        }
-      };
-
-      // =================================================================================
-      // GESTIÓN DE ZONAS (GLOBALES)
-      // =================================================================================
-      let todasLasZonas = [];
-      let editingIdZona = null;
-
-      // Agregar Zona (Modal pequeño)
-      const formZona = document.getElementById("formZona");
-      formZona.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const nombreZona = document.getElementById("nombreZona").value.trim();
-
-        const res = await fetch("/zonas/agregar", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nombreZona }),
-          credentials: "include"
-        });
-
-        const result = await res.json();
-
-        if (result.success) {
-          const select = document.getElementById("zona");
-          const option = document.createElement("option");
-          option.value = result.id;
-          option.textContent = nombreZona;
-          select.appendChild(option);
-          select.value = result.id;
-
-          document.getElementById("nombreZona").value = "";
-          bootstrap.Modal.getInstance(document.getElementById("modalAgregarZona")).hide();
-          Swal.fire("Zona agregada", "Se agregó correctamente", "success");
-        } else {
-          Swal.fire("Error", result.message, "error");
-        }
-      });
-
-      async function cargarZonas() {
-        try {
-          const res = await fetch("/zonas", { credentials: "include" });
-          const { zonas } = await res.json();
-          todasLasZonas = zonas;
-          renderizarZonas(zonas);
-        } catch (err) {
-          Swal.fire("Error", "No se pudieron cargar las zonas", "error");
+          Swal.fire("Error", "No se pudo eliminar", "error");
         }
       }
+    };
 
-      function renderizarZonas(zonas) {
-        const tbody = document.getElementById("tbodyZonas");
-        tbody.innerHTML = "";
+    // =================================================================================
+    // GESTIÓN DE ZONAS (GLOBALES)
+    // =================================================================================
+    let todasLasZonas = [];
+    let editingIdZona = null;
 
-        if (zonas.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No hay zonas disponibles, cargue una.</td></tr>';
-          return;
-        }
+    // Agregar Zona (Modal pequeño)
+    const formZona = document.getElementById("formZona");
+    formZona.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nombreZona = document.getElementById("nombreZona").value.trim();
 
-        zonas.forEach((z) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
+      const res = await fetch("/zonas/agregar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombreZona }),
+        credentials: "include"
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        const select = document.getElementById("zona");
+        const option = document.createElement("option");
+        option.value = result.id;
+        option.textContent = nombreZona;
+        select.appendChild(option);
+        select.value = result.id;
+
+        document.getElementById("nombreZona").value = "";
+        bootstrap.Modal.getInstance(document.getElementById("modalAgregarZona")).hide();
+        Swal.fire("Zona agregada", "Se agregó correctamente", "success");
+      } else {
+        Swal.fire("Error", result.message, "error");
+      }
+    });
+
+    async function cargarZonas() {
+      try {
+        const res = await fetch("/zonas", { credentials: "include" });
+        const { zonas } = await res.json();
+        todasLasZonas = zonas;
+        renderizarZonas(zonas);
+      } catch (err) {
+        Swal.fire("Error", "No se pudieron cargar las zonas", "error");
+      }
+    }
+
+    function renderizarZonas(zonas) {
+      const tbody = document.getElementById("tbodyZonas");
+      tbody.innerHTML = "";
+
+      if (zonas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No hay zonas disponibles, cargue una.</td></tr>';
+        return;
+      }
+
+      zonas.forEach((z) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
             <td>${z.nombre_zona}</td>
             <td>
               <button class="btn btn-sm btn-warning" onclick="editarZona(${z.id_zona})">✏️</button>
               <button class="btn btn-sm btn-danger" onclick="borrarZona(${z.id_zona})"><i class="bi bi-trash"></i></button>
             </td>
           `;
-          tbody.appendChild(tr);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filtrarZonas() {
+      const termino = document.getElementById("searchZonas").value.toLowerCase();
+      const filtradas = todasLasZonas.filter((z) => z.nombre_zona.toLowerCase().includes(termino));
+      renderizarZonas(filtradas);
+    }
+
+    async function editarZona(id) {
+      const zona = todasLasZonas.find((z) => z.id_zona === id);
+      if (!zona) return;
+      editingIdZona = id;
+      document.getElementById("editIdZona").value = id;
+      document.querySelector('#editFormZona input[name="nombreZona"]').value = zona.nombre_zona;
+      document.getElementById("searchZonas").style.display = "none";
+      document.getElementById("listaZonas").style.display = "none";
+      document.getElementById("formEdicionZona").style.display = "block";
+    }
+
+    function cancelarEdicionZona() {
+      document.getElementById("formEdicionZona").style.display = "none";
+      document.getElementById("listaZonas").style.display = "block";
+      editingIdZona = null;
+    }
+
+    async function editarZonaSubmit(e) {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+
+      try {
+        const res = await fetch(`/zonas/${editingIdZona}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+          credentials: "include"
         });
-      }
 
-      function filtrarZonas() {
-        const termino = document.getElementById("searchZonas").value.toLowerCase();
-        const filtradas = todasLasZonas.filter((z) => z.nombre_zona.toLowerCase().includes(termino));
-        renderizarZonas(filtradas);
-      }
+        const result = await res.json();
 
-      async function editarZona(id) {
-        const zona = todasLasZonas.find((z) => z.id_zona === id);
-        if (!zona) return;
-        editingIdZona = id;
-        document.getElementById("editIdZona").value = id;
-        document.querySelector('#editFormZona input[name="nombreZona"]').value = zona.nombre_zona;
-        document.getElementById("searchZonas").style.display = "none";
-        document.getElementById("listaZonas").style.display = "none";
-        document.getElementById("formEdicionZona").style.display = "block";
-      }
-
-      function cancelarEdicionZona() {
-        document.getElementById("formEdicionZona").style.display = "none";
-        document.getElementById("listaZonas").style.display = "block";
-        editingIdZona = null;
-      }
-
-      async function editarZonaSubmit(e) {
-        e.preventDefault();
-        const data = Object.fromEntries(new FormData(e.target).entries());
-
-        try {
-          const res = await fetch(`/zonas/${editingIdZona}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-            credentials: "include"
+        if (result.success) {
+          bootstrap.Modal.getInstance(document.getElementById("modalGestionarZonas")).hide();
+          await recargarZonasEnSelects();
+          cancelarEdicionZona();
+          await Swal.fire({
+            title: "¡Actualizado!",
+            text: result.message,
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false,
           });
-
-          const result = await res.json();
-
-          if (result.success) {
-            bootstrap.Modal.getInstance(document.getElementById("modalGestionarZonas")).hide();
-            await recargarZonasEnSelects();
-            cancelarEdicionZona();
-            await Swal.fire({
-              title: "¡Actualizado!",
-              text: result.message,
-              icon: "success",
-              timer: 1500,
-              showConfirmButton: false,
-            });
-          } else {
-            Swal.fire("Error", result.message, "error");
-          }
-        } catch (err) {
-          console.error("Error:", err);
-          Swal.fire("Error", "No se pudo actualizar la zona", "error");
+        } else {
+          Swal.fire("Error", result.message, "error");
         }
+      } catch (err) {
+        console.error("Error:", err);
+        Swal.fire("Error", "No se pudo actualizar la zona", "error");
       }
+    }
 
-      async function borrarZona(id) {
-        const zona = todasLasZonas.find((z) => z.id_zona === id);
-        Swal.fire({
-          title: `¿Borrar "${zona.nombre_zona}"?`,
-          text: "Esta acción no se puede deshacer.",
-          icon: "warning",
-          showCancelButton: true,
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            try {
-              const res = await fetch(`/zonas/${id}`, { method: "DELETE", credentials: "include" });
-              const data = await res.json();
+    async function borrarZona(id) {
+      const zona = todasLasZonas.find((z) => z.id_zona === id);
+      Swal.fire({
+        title: `¿Borrar "${zona.nombre_zona}"?`,
+        text: "Esta acción no se puede deshacer.",
+        icon: "warning",
+        showCancelButton: true,
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const res = await fetch(`/zonas/${id}`, { method: "DELETE", credentials: "include" });
+            const data = await res.json();
 
-              if (data.success) {
-                await recargarZonasEnSelects();
-                renderizarZonas(todasLasZonas);
-                await Swal.fire({
-                  title: "¡Eliminado!",
-                  text: data.message || "Zona borrada correctamente",
-                  icon: "success",
-                  timer: 1500,
-                  showConfirmButton: false,
-                });
-              } else {
-                Swal.fire("Error", data.message, "error");
-              }
-            } catch (err) {
-              Swal.fire("Error", "No se pudo borrar", "error");
+            if (data.success) {
+              await recargarZonasEnSelects();
+              renderizarZonas(todasLasZonas);
+              await Swal.fire({
+                title: "¡Eliminado!",
+                text: "Zona movida a eliminados. Puede restaurarla desde Configuración > Ver Eliminados.",
+                icon: "success",
+                timer: 2500,
+                showConfirmButton: false,
+              });
+            } else {
+              Swal.fire("Error", data.message, "error");
             }
+          } catch (err) {
+            Swal.fire("Error", "No se pudo borrar", "error");
           }
+        }
+      });
+    }
+
+    async function recargarZonasEnSelects() {
+      try {
+        const res = await fetch("/zonas", { credentials: "include" });
+        if (!res.ok) throw new Error("Error al cargar zonas");
+        const { zonas } = await res.json();
+
+        // 1. Select Principal
+        const selectPrincipal = document.getElementById("zona");
+        const valorActual = selectPrincipal.value;
+        selectPrincipal.innerHTML = '<option value="">Seleccione una zona</option>';
+        zonas.forEach((z) => {
+          const opt = new Option(z.nombre_zona, z.id_zona);
+          if (z.id_zona == valorActual) opt.selected = true;
+          selectPrincipal.add(opt);
         });
-      }
 
-      async function recargarZonasEnSelects() {
-        try {
-          const res = await fetch("/zonas", { credentials: "include" });
-          if (!res.ok) throw new Error("Error al cargar zonas");
-          const { zonas } = await res.json();
-
-          // 1. Select Principal
-          const selectPrincipal = document.getElementById("zona");
-          const valorActual = selectPrincipal.value;
-          selectPrincipal.innerHTML = '<option value="">Seleccione una zona</option>';
+        // 2. Select Edición
+        const selectEdicion = document.querySelector('#editFormPersona select[name="zona"]');
+        if (selectEdicion) {
+          const valorEdicion = selectEdicion.value;
+          selectEdicion.innerHTML = "";
           zonas.forEach((z) => {
             const opt = new Option(z.nombre_zona, z.id_zona);
-            if (z.id_zona == valorActual) opt.selected = true;
-            selectPrincipal.add(opt);
+            if (z.id_zona == valorEdicion) opt.selected = true;
+            selectEdicion.add(opt);
           });
-
-          // 2. Select Edición
-          const selectEdicion = document.querySelector('#editFormPersona select[name="zona"]');
-          if (selectEdicion) {
-            const valorEdicion = selectEdicion.value;
-            selectEdicion.innerHTML = "";
-            zonas.forEach((z) => {
-              const opt = new Option(z.nombre_zona, z.id_zona);
-              if (z.id_zona == valorEdicion) opt.selected = true;
-              selectEdicion.add(opt);
-            });
-          }
-          
-          // 3. Select Edición Persona Real
-           const selectEdicionReal = document.querySelector('#formEditarPersonaReal select[name="zona"]');
-          if (selectEdicionReal) {
-             const valorEdicion = selectEdicionReal.value;
-             selectEdicionReal.innerHTML = "";
-             zonas.forEach((z) => {
-               const opt = new Option(z.nombre_zona, z.id_zona);
-               if (z.id_zona == valorEdicion) opt.selected = true;
-               selectEdicionReal.add(opt);
-             });
-          }
-
-          todasLasZonas = zonas;
-        } catch (err) {
-          console.error("Error recargando zonas:", err);
         }
+
+        // 3. Select Edición Persona Real
+        const selectEdicionReal = document.querySelector('#formEditarPersonaReal select[name="zona"]');
+        if (selectEdicionReal) {
+          const valorEdicion = selectEdicionReal.value;
+          selectEdicionReal.innerHTML = "";
+          zonas.forEach((z) => {
+            const opt = new Option(z.nombre_zona, z.id_zona);
+            if (z.id_zona == valorEdicion) opt.selected = true;
+            selectEdicionReal.add(opt);
+          });
+        }
+
+        todasLasZonas = zonas;
+      } catch (err) {
+        console.error("Error recargando zonas:", err);
       }
-    </script>
-  </body>
+    }
+  </script>
+</body>
+
 </html>

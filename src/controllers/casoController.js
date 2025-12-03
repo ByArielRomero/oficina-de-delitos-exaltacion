@@ -14,7 +14,7 @@ export const mostrarListaCasos = async (req, res) => {
     res.set('Pragma', 'no-cache');
     res.set('Expires', '0');
 
-    res.render("lista-casos", { 
+    res.render("lista-casos", {
       casos,
       currentUser: req.user || null,
       _cacheBuster: Date.now()
@@ -22,6 +22,48 @@ export const mostrarListaCasos = async (req, res) => {
   } catch (error) {
     console.error("Error al cargar lista de casos:", error);
     res.status(500).send("Error al cargar la lista de casos");
+  }
+};
+
+// === Render: Menú de Eliminados (Solo Admin) ===
+export const mostrarMenuEliminados = (req, res) => {
+  if (!req.user || Number(req.user.rol) !== 1) {
+    return res.redirect("/dashboard");
+  }
+  res.render("menu-eliminados", { currentUser: req.user });
+};
+
+// === Render: Listas de Eliminados ===
+export const listarPersonasEliminadas = async (req, res) => {
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) return res.redirect("/dashboard");
+    const personas = await PersonaModel.getPersonasEliminadas();
+    res.render("lista-personas-eliminadas", { personas, currentUser: req.user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error");
+  }
+};
+
+export const listarZonasEliminadas = async (req, res) => {
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) return res.redirect("/dashboard");
+    const zonas = await ZonaModel.getZonasEliminadas();
+    res.render("lista-zonas-eliminadas", { zonas, currentUser: req.user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error");
+  }
+};
+
+export const listarDelitosEliminados = async (req, res) => {
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) return res.redirect("/dashboard");
+    const delitos = await DelitoModel.getDelitosEliminados();
+    res.render("lista-delitos-eliminados", { delitos, currentUser: req.user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error");
   }
 };
 
@@ -39,16 +81,16 @@ export const obtenerCaso = async (req, res) => {
       ZonaModel.getZonas()
     ]);
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       caso: {
         ...caso,
         tipo_caso: caso.tipo_delito,
         zona: caso.nombre_zona,
         estado: caso.estado || 'Pendiente'
-      }, 
-      delitos, 
-      zonas 
+      },
+      delitos,
+      zonas
     });
   } catch (error) {
     console.error("Error en obtenerCaso:", error);
@@ -95,8 +137,8 @@ export const actualizarCaso = async (req, res) => {
     });
 
     if (!personaActualizada) {
-       // Si no se actualizó (ej. ID no existe), aunque es raro si el caso existe.
-       console.warn("No se pudo actualizar la persona asociada al caso", id);
+      // Si no se actualizó (ej. ID no existe), aunque es raro si el caso existe.
+      console.warn("No se pudo actualizar la persona asociada al caso", id);
     }
 
     // 3. Actualizar Caso
@@ -163,22 +205,22 @@ export const addDelito = async (req, res) => {
 export const createCasoController = async (req, res) => {
   try {
     const { observacion, id_persona, id_usuario, id_delito, id_zona, estado = 'Pendiente', fecha_creacion } = req.body;
-    
+
     if (!id_persona || !id_delito || !id_zona) {
       return res.status(400).json({ success: false, message: "Faltan campos requeridos" });
     }
 
     const usuarioLogueado = req.user?.id_usuario || id_usuario;
     const ahora = new Date();
-    
+
     const nuevoCaso = await CasoModel.createCaso({
-      observacion, 
-      id_persona: Number(id_persona), 
+      observacion,
+      id_persona: Number(id_persona),
       id_usuario: usuarioLogueado,
-      id_delito: Number(id_delito), 
+      id_delito: Number(id_delito),
       id_zona: Number(id_zona),
-      fecha_creada: fecha_creacion || ahora, 
-      fecha_actualizado: ahora, 
+      fecha_creada: fecha_creacion || ahora,
+      fecha_actualizado: ahora,
       estado
     });
 
@@ -199,12 +241,12 @@ export const mostrarFormularioCaso = async (req, res) => {
       UsuarioModel.getUsuarios()
     ]);
 
-    res.render("agregar-casos", { 
-      alert: req.session?.alert || null, 
-      personas, 
-      delitos, 
-      zonas, 
-      usuarios, 
+    res.render("agregar-casos", {
+      alert: req.session?.alert || null,
+      personas,
+      delitos,
+      zonas,
+      usuarios,
       currentUser: req.user || null
     });
   } catch (error) {
@@ -280,15 +322,72 @@ export const updateDelito = async (req, res) => {
 export const deleteDelito = async (req, res) => {
   const { id } = req.params;
   try {
-    const inUse = await DelitoModel.isDelitoInUse(id);
-    if (inUse) {
-      return res.status(400).json({ success: false, message: "Hay casos asociados a este delito, no se puede eliminar." });
-    }
+    // Soft delete allows removing even if in use (historical data remains)
+    // const inUse = await DelitoModel.isDelitoInUse(id);
+    // if (inUse) {
+    //   return res.status(400).json({ success: false, message: "Hay casos asociados a este delito, no se puede eliminar." });
+    // }
 
     await DelitoModel.deleteDelito(id);
     res.json({ success: true, message: "Delito eliminado" });
   } catch (error) {
     console.error("Error en deleteDelito:", error);
     res.status(500).json({ success: false, message: "Error al borrar" });
+  }
+};
+
+// === Render: Lista de Casos Eliminados (Solo Admin) ===
+export const listarCasosEliminados = async (req, res) => {
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) {
+      return res.redirect("/dashboard");
+    }
+
+    const casos = await CasoModel.getCasosEliminados();
+
+    res.render("lista-casos-eliminados", {
+      casos,
+      currentUser: req.user,
+      _cacheBuster: Date.now()
+    });
+  } catch (error) {
+    console.error("Error al cargar casos eliminados:", error);
+    res.status(500).send("Error al cargar la lista de casos eliminados");
+  }
+};
+
+// === API: Restaurar Caso (Solo Admin) ===
+export const restaurarCaso = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) {
+      return res.status(403).json({ success: false, message: "Acceso denegado" });
+    }
+
+    const restored = await CasoModel.restoreCaso(id);
+    if (restored) {
+      res.json({ success: true, message: "Caso restaurado correctamente" });
+    } else {
+      res.status(404).json({ success: false, message: "Caso no encontrado o no estaba eliminado" });
+    }
+  } catch (error) {
+    console.error("Error al restaurar caso:", error);
+    res.status(500).json({ success: false, message: "Error al restaurar caso" });
+  }
+};
+
+// === API: Restaurar Delito (Solo Admin) ===
+export const restaurarDelito = async (req, res) => {
+  const { id } = req.params;
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) {
+      return res.status(403).json({ success: false, message: "Acceso denegado" });
+    }
+    await DelitoModel.restoreDelito(id);
+    res.json({ success: true, message: "Delito restaurado" });
+  } catch (error) {
+    console.error("Error en restaurarDelito:", error);
+    res.status(500).json({ success: false, message: "Error al restaurar" });
   }
 };

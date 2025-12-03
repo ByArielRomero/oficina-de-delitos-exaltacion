@@ -63,6 +63,7 @@ export async function getCasos() {
     JOIN persona p ON c.id_persona = p.id_persona
     JOIN delito d ON c.id_delito = d.id_delito
     JOIN zona z ON c.id_zona = z.id_zona
+    WHERE c.deleted_at IS NULL
     ORDER BY c.fecha_creada DESC
   `);
   return rows;
@@ -95,7 +96,7 @@ export async function getCasoById(id) {
     JOIN persona p ON c.id_persona = p.id_persona
     JOIN delito d ON c.id_delito = d.id_delito
     JOIN zona z ON c.id_zona = z.id_zona
-    WHERE c.id_casos = ?
+    WHERE c.id_casos = ? AND c.deleted_at IS NULL
   `,
     [id]
   );
@@ -119,12 +120,12 @@ export async function updateCaso(id, { id_delito, id_zona, estado, observacion }
 }
 
 /**
- * Elimina un caso por su ID.
+ * Elimina un caso por su ID (Soft Delete).
  * @param {number} id - ID del caso.
  * @returns {Promise<boolean>} True si se eliminó.
  */
 export async function deleteCaso(id) {
-  const [result] = await pool.query("DELETE FROM casos WHERE id_casos = ?", [id]);
+  const [result] = await pool.query("UPDATE casos SET deleted_at = NOW() WHERE id_casos = ?", [id]);
   return result.affectedRows > 0;
 }
 
@@ -136,5 +137,40 @@ export async function deleteCaso(id) {
 export async function existsCaso(id) {
   const [rows] = await pool.query("SELECT 1 FROM casos WHERE id_casos = ?", [id]);
   return rows.length > 0;
+}
+
+/**
+ * Obtiene todos los casos eliminados (Soft Deleted).
+ * @returns {Promise<Array>} Lista de casos eliminados.
+ */
+export async function getCasosEliminados() {
+  const [rows] = await pool.query(`
+    SELECT
+      c.id_casos AS id,
+      p.nombre,
+      p.apellido,
+      p.dni,
+      d.tipo_delito AS tipo_caso,
+      z.nombre_zona AS zona,
+      c.fecha_creada,
+      c.deleted_at
+    FROM casos c
+    JOIN persona p ON c.id_persona = p.id_persona
+    JOIN delito d ON c.id_delito = d.id_delito
+    JOIN zona z ON c.id_zona = z.id_zona
+    WHERE c.deleted_at IS NOT NULL
+    ORDER BY c.deleted_at DESC
+  `);
+  return rows;
+}
+
+/**
+ * Restaura un caso eliminado.
+ * @param {number} id - ID del caso.
+ * @returns {Promise<boolean>} True si se restauró.
+ */
+export async function restoreCaso(id) {
+  const [result] = await pool.query("UPDATE casos SET deleted_at = NULL WHERE id_casos = ?", [id]);
+  return result.affectedRows > 0;
 }
 

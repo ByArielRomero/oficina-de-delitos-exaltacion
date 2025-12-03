@@ -4,9 +4,13 @@ import pool from "../config/db.js";
  * Obtiene todos los delitos ordenados por tipo.
  * @returns {Promise<Array>} Lista de delitos.
  */
+/**
+ * Obtiene todos los delitos ordenados por tipo (no eliminados).
+ * @returns {Promise<Array>} Lista de delitos.
+ */
 export async function getDelitos() {
   const [rows] = await pool.query(
-    "SELECT id_delito, tipo_delito FROM delito ORDER BY tipo_delito"
+    "SELECT id_delito, tipo_delito FROM delito WHERE deleted_at IS NULL ORDER BY tipo_delito"
   );
   return rows;
 }
@@ -17,7 +21,7 @@ export async function getDelitos() {
  * @returns {Promise<Object|null>} El delito encontrado o null.
  */
 export async function getDelitoById(id) {
-  const [rows] = await pool.query("SELECT * FROM delito WHERE id_delito = ?", [id]);
+  const [rows] = await pool.query("SELECT * FROM delito WHERE id_delito = ? AND deleted_at IS NULL", [id]);
   return rows[0] || null;
 }
 
@@ -27,7 +31,7 @@ export async function getDelitoById(id) {
  * @returns {Promise<Object|null>} El delito encontrado o null.
  */
 export async function getDelitoByNombre(tipoDelito) {
-  const [rows] = await pool.query("SELECT * FROM delito WHERE tipo_delito = ?", [tipoDelito]);
+  const [rows] = await pool.query("SELECT * FROM delito WHERE tipo_delito = ? AND deleted_at IS NULL", [tipoDelito]);
   return rows[0] || null;
 }
 
@@ -59,12 +63,28 @@ export async function updateDelito(id, tipoDelito) {
 }
 
 /**
- * Elimina un delito por su ID.
+ * Elimina un delito por su ID (Soft Delete).
  * @param {number} id - ID del delito.
  * @returns {Promise<boolean>} True si se eliminó, False si no.
  */
 export async function deleteDelito(id) {
-  const [result] = await pool.query("DELETE FROM delito WHERE id_delito = ?", [id]);
+  const [result] = await pool.query("UPDATE delito SET deleted_at = NOW() WHERE id_delito = ?", [id]);
+  return result.affectedRows > 0;
+}
+
+/**
+ * Obtiene delitos eliminados.
+ */
+export async function getDelitosEliminados() {
+  const [rows] = await pool.query("SELECT * FROM delito WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+  return rows;
+}
+
+/**
+ * Restaura un delito eliminado.
+ */
+export async function restoreDelito(id) {
+  const [result] = await pool.query("UPDATE delito SET deleted_at = NULL WHERE id_delito = ?", [id]);
   return result.affectedRows > 0;
 }
 
