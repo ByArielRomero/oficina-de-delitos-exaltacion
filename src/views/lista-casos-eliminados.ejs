@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Casos Eliminados - OVD</title>
+
+  <!-- Bootstrap y Estilos -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+  <!-- =================================================================================
+         NAVBAR
+         ================================================================================= -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/dashboard">
+        <i class="bi bi-shield-check"></i> OVD - Admin
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/dashboard">
+              <i class="bi bi-house-door"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/register">
+              <i class="bi bi-gear"></i> Configuración
+            </a>
+          </li>
+        </ul>
+        <div class="dropdown me-3">
+          <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i>
+            <span id="currentUser">
+              <% if (currentUser) { %>
+                <%= currentUser.nombre || currentUser.username %>
+                  <% } else { %>
+                    Admin
+                    <% } %>
+            </span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <button class="dropdown-item text-danger" onclick="logout()">
+                <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- =================================================================================
+         CONTENIDO PRINCIPAL
+         ================================================================================= -->
+  <div class="container py-4">
+
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-6">
+        <h4>
+          <i class="bi bi-trash"></i> Casos Eliminados
+        </h4>
+        <p class="text-muted">Historial de casos eliminados. Puede restaurarlos si fue un error.</p>
+      </div>
+      <div class="col-md-6 text-end">
+        <input type="text" id="searchInput" class="form-control d-inline-block w-auto me-2" placeholder="Buscar..." />
+        <a href="/eliminados" class="btn btn-secondary btn-sm">
+          <i class="bi bi-arrow-left"></i> Volver
+        </a>
+      </div>
+    </div>
+
+    <!-- Tabla de Casos -->
+    <div class="table-responsive">
+      <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>DNI</th>
+            <th>Tipo de Caso</th>
+            <th>Zona</th>
+            <th>Fecha Eliminación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaCasos">
+          <% if (!casos || casos.length===0) { %>
+            <tr>
+              <td colspan="8" class="text-center text-muted">
+                No hay casos eliminados
+              </td>
+            </tr>
+            <% } else { %>
+              <% casos.forEach(caso=> { %>
+                <tr>
+                  <td>
+                    <%= caso.id %>
+                  </td>
+                  <td>
+                    <%= caso.nombre %>
+                  </td>
+                  <td>
+                    <%= caso.apellido %>
+                  </td>
+                  <td>
+                    <%= caso.dni %>
+                  </td>
+                  <td>
+                    <%= caso.tipo_caso %>
+                  </td>
+                  <td>
+                    <%= caso.zona %>
+                  </td>
+                  <td>
+                    <%= caso.deleted_at ? new Date(caso.deleted_at).toLocaleString('es-AR', { day: '2-digit' ,
+                      month: '2-digit' , year: 'numeric' , hour: '2-digit' , minute: '2-digit' , hour12: false }) : '-'
+                      %>
+                  </td>
+                  <td>
+                    <button class="btn btn-success btn-sm" onclick="restaurarCaso('<%= caso.id %>')"
+                      title="Restaurar Caso">
+                      <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+                    </button>
+                  </td>
+                </tr>
+                <% }) %>
+                  <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- =================================================================================
+         SCRIPTS
+         ================================================================================= -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    // =================================================================================
+    // FILTRO DE BÚSQUEDA
+    // =================================================================================
+    document.addEventListener("DOMContentLoaded", () => {
+      const searchInput = document.getElementById("searchInput");
+      const tableBody = document.getElementById("tablaCasos");
+      const rows = Array.from(tableBody.getElementsByTagName("tr"));
+
+      searchInput.addEventListener("input", function () {
+        const searchTerm = this.value.toLowerCase().trim();
+
+        rows.forEach(row => {
+          // Si es la fila de "No hay casos", ignorar si hay más filas
+          if (row.cells.length === 1 && row.cells[0].colSpan === 8) return;
+
+          const text = row.textContent.toLowerCase();
+          if (text.includes(searchTerm)) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
+        });
+      });
+    });
+
+    async function logout() {
+      try {
+        await fetch("/logout", { method: "POST", credentials: "include" });
+        window.location.href = "/login?alert=logout";
+      } catch (err) {
+        alert("Error al cerrar sesión");
+      }
+    }
+
+    async function restaurarCaso(id) {
+      const result = await Swal.fire({
+        title: "¿Restaurar Caso?",
+        text: "El caso volverá a aparecer en la lista principal.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#28a745",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Sí, restaurar",
+        cancelButtonText: "Cancelar"
+      });
+
+      if (result.isConfirmed) {
+        try {
+          const res = await fetch(`/api/casos/${id}/restore`, {
+            method: "PUT",
+            credentials: "include"
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            await Swal.fire("Restaurado", "El caso ha sido restaurado correctamente.", "success");
+            location.reload();
+          } else {
+            Swal.fire("Error", data.message || "No se pudo restaurar", "error");
+          }
+        } catch (error) {
+          console.error(error);
+          Swal.fire("Error", "Error de conexión", "error");
+        }
+      }
+    }
+  </script>
+</body>
+
+</html>

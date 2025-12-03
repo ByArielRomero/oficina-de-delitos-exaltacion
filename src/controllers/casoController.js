@@ -1,32 +1,69 @@
-import pool from "../config/db.js";
-import {
-  getPersonas,
-  getDelitos,
-  getUsuarios,
-  getZonas,
-  createDelito,
-  createCaso,
-  getCasos,
-  getCasoById,
-} from "../models/casoModel.js";
+import * as CasoModel from "../models/casoModel.js";
+import * as PersonaModel from "../models/personaModel.js";
+import * as DelitoModel from "../models/DelitoModel.js";
+import * as ZonaModel from "../models/zonaModel.js";
+import * as UsuarioModel from "../models/UsuarioModel.js";
 
 // === Render: Lista de casos ===
 export const mostrarListaCasos = async (req, res) => {
   try {
-    const casos = await getCasos(); // ← OBTIENE DATOS FRESCOS
+    const casos = await CasoModel.getCasos();
 
     // DESACTIVAR CACHÉ
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.set('Pragma', 'no-cache');
     res.set('Expires', '0');
 
-    res.render("lista-casos", { 
+    res.render("lista-casos", {
       casos,
-      _cacheBuster: Date.now() // ← FUERZA RECARGA
+      currentUser: req.user || null,
+      _cacheBuster: Date.now()
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error al cargar lista de casos:", error);
     res.status(500).send("Error al cargar la lista de casos");
+  }
+};
+
+// === Render: Menú de Eliminados (Solo Admin) ===
+export const mostrarMenuEliminados = (req, res) => {
+  if (!req.user || Number(req.user.rol) !== 1) {
+    return res.redirect("/dashboard");
+  }
+  res.render("menu-eliminados", { currentUser: req.user });
+};
+
+// === Render: Listas de Eliminados ===
+export const listarPersonasEliminadas = async (req, res) => {
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) return res.redirect("/dashboard");
+    const personas = await PersonaModel.getPersonasEliminadas();
+    res.render("lista-personas-eliminadas", { personas, currentUser: req.user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error");
+  }
+};
+
+export const listarZonasEliminadas = async (req, res) => {
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) return res.redirect("/dashboard");
+    const zonas = await ZonaModel.getZonasEliminadas();
+    res.render("lista-zonas-eliminadas", { zonas, currentUser: req.user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error");
+  }
+};
+
+export const listarDelitosEliminados = async (req, res) => {
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) return res.redirect("/dashboard");
+    const delitos = await DelitoModel.getDelitosEliminados();
+    res.render("lista-delitos-eliminados", { delitos, currentUser: req.user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error");
   }
 };
 
@@ -34,25 +71,26 @@ export const mostrarListaCasos = async (req, res) => {
 export const obtenerCaso = async (req, res) => {
   try {
     const { id } = req.params;
-    const caso = await getCasoById(id);
+    const caso = await CasoModel.getCasoById(id);
     if (!caso) {
       return res.status(404).json({ success: false, message: "Caso no encontrado" });
     }
 
-    const [delitos] = await pool.query("SELECT id_delito, tipo_delito FROM delito ORDER BY tipo_delito");
-    const [zonas] = await pool.query("SELECT id_zona, nombre_zona FROM zona ORDER BY nombre_zona");
+    const [delitos, zonas] = await Promise.all([
+      DelitoModel.getDelitos(),
+      ZonaModel.getZonas()
+    ]);
 
-    // Aseguramos que tipo_caso y zona vengan completos
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       caso: {
         ...caso,
-        tipo_caso: caso.tipo_delito,     // ← alias correcto
-        zona: caso.nombre_zona,          // ← alias correcto
+        tipo_caso: caso.tipo_delito,
+        zona: caso.nombre_zona,
         estado: caso.estado || 'Pendiente'
-      }, 
-      delitos, 
-      zonas 
+      },
+      delitos,
+      zonas
     });
   } catch (error) {
     console.error("Error en obtenerCaso:", error);
@@ -62,7 +100,7 @@ export const obtenerCaso = async (req, res) => {
 
 // === API: Actualizar caso (incluye estado) ===
 export const actualizarCaso = async (req, res) => {
-  const id = Number(req.params.id); // ← Asegura número
+  const id = Number(req.params.id);
   const {
     nombre,
     apellido,
@@ -74,9 +112,6 @@ export const actualizarCaso = async (req, res) => {
     observaciones: observacion,
   } = req.body;
 
-  console.log("Actualizando caso ID:", id);
-  console.log("Datos recibidos:", { nombre, apellido, dni, telefono, id_delito, id_zona, estado, observacion });
-
   try {
     // === VALIDACIÓN ===
     if (!nombre || !apellido || !dni || !id_delito || !id_zona || !estado) {
@@ -87,139 +122,142 @@ export const actualizarCaso = async (req, res) => {
       return res.status(400).json({ success: false, message: "ID inválido" });
     }
 
-    // === 1. ACTUALIZAR PERSONA ===
-    const [personaResult] = await pool.query(
-      `UPDATE persona p
-       JOIN casos c ON p.id_persona = c.id_persona
-       SET p.nombre = ?, p.apellido = ?, p.dni = ?, p.telefono = ?
-       WHERE c.id_casos = ?`,
-      [nombre.trim(), apellido.trim(), dni.trim(), telefono?.trim() || null, id]
-    );
-
-    console.log("Persona afectada:", personaResult.affectedRows);
-
-    if (personaResult.affectedRows === 0) {
-      return res.status(404).json({ success: false, message: "Caso o persona no encontrado" });
+    // 1. Obtener el caso para saber el ID de la persona
+    const casoActual = await CasoModel.getCasoById(id);
+    if (!casoActual) {
+      return res.status(404).json({ success: false, message: "Caso no encontrado" });
     }
 
-    // === 2. ACTUALIZAR CASO ===
-    const [casoResult] = await pool.query(
-      `UPDATE casos 
-       SET id_delito = ?, id_zona = ?, estado = ?, observacion = ?, fecha_actualizado = NOW()
-       WHERE id_casos = ?`,
-      [Number(id_delito), Number(id_zona), estado.trim(), observacion?.trim() || null, id]
-    );
+    // 2. Actualizar Persona
+    const personaActualizada = await PersonaModel.updatePersona(casoActual.id_persona, {
+      nombre: nombre.trim(),
+      apellido: apellido.trim(),
+      dni: dni.trim(),
+      telefono: telefono?.trim() || null
+    });
 
-    console.log("Caso afectado:", casoResult.affectedRows);
+    if (!personaActualizada) {
+      // Si no se actualizó (ej. ID no existe), aunque es raro si el caso existe.
+      console.warn("No se pudo actualizar la persona asociada al caso", id);
+    }
 
-    if (casoResult.affectedRows === 0) {
-      return res.status(404).json({ success: false, message: "Caso no encontrado" });
+    // 3. Actualizar Caso
+    const casoActualizado = await CasoModel.updateCaso(id, {
+      id_delito: Number(id_delito),
+      id_zona: Number(id_zona),
+      estado: estado.trim(),
+      observacion: observacion?.trim() || null
+    });
+
+    if (!casoActualizado) {
+      return res.status(500).json({ success: false, message: "No se pudo actualizar el caso" });
     }
 
     res.json({ success: true, message: "Caso actualizado correctamente" });
   } catch (error) {
-    console.error("ERROR COMPLETO EN actualizarCaso:", error);
+    console.error("ERROR EN actualizarCaso:", error);
     res.status(500).json({
       success: false,
       message: "Error interno del servidor",
-      error: error.message,
-      sql: error.sql,
+      error: error.message
     });
   }
 };
 
-// === Resto (getData, createCaso, etc.) ===
+// === API: Obtener datos para formularios (Personas, Delitos, Usuarios, Zonas) ===
 export const getData = async (req, res) => {
   try {
     const [personas, delitos, usuarios, zonas] = await Promise.all([
-      getPersonas(), getDelitos(), getUsuarios(), getZonas()
+      PersonaModel.getPersonas(),
+      DelitoModel.getDelitos(),
+      UsuarioModel.getUsuarios(),
+      ZonaModel.getZonas()
     ]);
     res.json({ success: true, data: { personas, delitos, usuarios, zonas } });
   } catch (error) {
+    console.error("Error en getData:", error);
     res.status(500).json({ success: false, message: "Error al cargar datos" });
   }
 };
 
+// === API: Agregar Delito ===
 export const addDelito = async (req, res) => {
   try {
     const { tipo_delito } = req.body;
     if (!tipo_delito || tipo_delito.trim().length < 3) {
-      return res.status(400).json({ success: false, message: "Tipo de delito inválido" });
+      return res.status(400).json({ success: false, message: "Tipo de delito inválido (min 3 caracteres)" });
     }
 
-    // Verificar si ya existe
-    const [existing] = await pool.query("SELECT * FROM delito WHERE tipo_delito = ?", [tipo_delito.trim()]);
-    if (existing.length > 0) {
+    const existing = await DelitoModel.getDelitoByNombre(tipo_delito.trim());
+    if (existing) {
       return res.status(400).json({ success: false, message: "Ya existe un tipo de caso con ese nombre." });
     }
 
-    const nuevo = await createDelito(tipo_delito.trim());
+    const nuevo = await DelitoModel.createDelito(tipo_delito.trim());
     res.status(201).json({ success: true, data: nuevo });
   } catch (error) {
+    console.error("Error en addDelito:", error);
     res.status(500).json({ success: false, message: "Error al agregar delito" });
   }
 };
 
+// === API: Crear Caso ===
 export const createCasoController = async (req, res) => {
   try {
     const { observacion, id_persona, id_usuario, id_delito, id_zona, estado = 'Pendiente', fecha_creacion } = req.body;
+
     if (!id_persona || !id_delito || !id_zona) {
       return res.status(400).json({ success: false, message: "Faltan campos requeridos" });
     }
+
     const usuarioLogueado = req.user?.id_usuario || id_usuario;
     const ahora = new Date();
-    const nuevoCaso = await createCaso({
-      observacion, id_persona: Number(id_persona), id_usuario: usuarioLogueado,
-      id_delito: Number(id_delito), id_zona: Number(id_zona),
-      fecha_creada: fecha_creacion || ahora, fecha_actualizado: ahora, estado
+
+    const nuevoCaso = await CasoModel.createCaso({
+      observacion,
+      id_persona: Number(id_persona),
+      id_usuario: usuarioLogueado,
+      id_delito: Number(id_delito),
+      id_zona: Number(id_zona),
+      fecha_creada: fecha_creacion || ahora,
+      fecha_actualizado: ahora,
+      estado
     });
+
     res.status(201).json({ success: true, data: nuevoCaso });
   } catch (error) {
+    console.error("Error en createCasoController:", error);
     res.status(500).json({ success: false, message: "Error al crear caso" });
   }
 };
 
+// === Render: Formulario Agregar Caso ===
 export const mostrarFormularioCaso = async (req, res) => {
   try {
-    const [personas] = await pool.query("SELECT id_persona, CONCAT(nombre,' ',apellido) AS nombre_completo FROM persona ORDER BY apellido");
-    const [delitos] = await pool.query("SELECT id_delito, tipo_delito FROM delito ORDER BY tipo_delito");
-    const [zonas] = await pool.query("SELECT id_zona, nombre_zona FROM zona ORDER BY nombre_zona");
-    const [usuarios] = await pool.query("SELECT id_usuario, nombre_usuario FROM usuario ORDER BY nombre_usuario");
-    res.render("agregar-casos", { alert: req.session?.alert || null, personas, delitos, zonas, usuarios ,currentUser: req.user || null});
+    const [personas, delitos, zonas, usuarios] = await Promise.all([
+      PersonaModel.getPersonas(),
+      DelitoModel.getDelitos(),
+      ZonaModel.getZonas(),
+      UsuarioModel.getUsuarios()
+    ]);
+
+    res.render("agregar-casos", {
+      alert: req.session?.alert || null,
+      personas,
+      delitos,
+      zonas,
+      usuarios,
+      currentUser: req.user || null
+    });
   } catch (error) {
+    console.error("Error en mostrarFormularioCaso:", error);
     res.status(500).send("Error al cargar formulario");
   }
 };
 
-// === Nueva función: Listar casos (con usuario actual) ===
-export const listarCasos = async (req, res) => {
-  try {
-    const [casos] = await pool.query(/* tu consulta */);
-
-    // DEBUG: ver en server si req.user existe
-    console.log('listarCasos - req.user =', req.user);
-
-    res.render("lista-casos", {
-      casos,
-      currentUser: req.user || null
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error al listar casos");
-  }
-};
-
-// ← NUEVO: Eliminar caso (solo admin)
+// === API: Eliminar Caso (Solo Admin) ===
 export const eliminarCaso = async (req, res) => {
   const { id } = req.params;
-
-  // DIAGNÓSTICO
-  console.log("=== INTENTO DE ELIMINAR CASO ===");
-  console.log("ID del caso:", id);
-  console.log("req.user:", req.user);
-  console.log("req.user.rol (crudo):", req.user?.rol);
-  console.log("Tipo de rol:", typeof req.user?.rol);
-  console.log("=====================================");
 
   try {
     if (!req.user) {
@@ -227,27 +265,17 @@ export const eliminarCaso = async (req, res) => {
     }
 
     const rol = Number(req.user.rol || 0);
-    console.log("ROL CONVERTIDO A NÚMERO:", rol);
 
     if (rol !== 1) {
-      return res.status(403).json({ 
-        success: false, 
-        message: "Acceso denegado: solo admin",
-        debug: { 
-          rol_original: req.user.rol,
-          rol_convertido: rol,
-          tipo: typeof req.user.rol
-        }
-      });
+      return res.status(403).json({ success: false, message: "Acceso denegado: solo admin" });
     }
 
-    const [caso] = await pool.query("SELECT 1 FROM casos WHERE id_casos = ?", [id]);
-    if (!caso.length) {
+    const exists = await CasoModel.existsCaso(id);
+    if (!exists) {
       return res.status(404).json({ success: false, message: "Caso no encontrado" });
     }
 
-    await pool.query("DELETE FROM casos WHERE id_casos = ?", [id]);
-    console.log("CASO ELIMINADO CORRECTAMENTE:", id);
+    await CasoModel.deleteCaso(id);
     res.json({ success: true, message: "Caso eliminado correctamente" });
   } catch (error) {
     console.error("ERROR EN ELIMINAR CASO:", error);
@@ -255,46 +283,111 @@ export const eliminarCaso = async (req, res) => {
   }
 };
 
-// === LISTAR TODOS LOS DELITOS ===
+// === API: Listar Delitos ===
 export const getDelitosList = async (req, res) => {
   try {
-    const [delitos] = await pool.query("SELECT id_delito, tipo_delito FROM delito ORDER BY tipo_delito");
+    const delitos = await DelitoModel.getDelitos();
     res.json({ delitos });
   } catch (error) {
+    console.error("Error en getDelitosList:", error);
     res.status(500).json({ success: false, message: "Error al cargar delitos" });
   }
 };
 
+// === API: Actualizar Delito ===
 export const updateDelito = async (req, res) => {
   const { id } = req.params;
   const { tipo_delito } = req.body;
+
   if (!tipo_delito || tipo_delito.trim().length < 2) {
     return res.status(400).json({ success: false, message: "Nombre inválido" });
   }
+
   try {
     // Verificar si ya existe OTRO con ese nombre
-    const [duplicate] = await pool.query("SELECT * FROM delito WHERE tipo_delito = ? AND id_delito != ?", [tipo_delito.trim(), id]);
-    if (duplicate.length > 0) {
+    const existing = await DelitoModel.getDelitoByNombre(tipo_delito.trim());
+    if (existing && existing.id_delito != id) {
       return res.status(400).json({ success: false, message: "Ya existe un tipo de caso con ese nombre." });
     }
 
-    await pool.query("UPDATE delito SET tipo_delito = ? WHERE id_delito = ?", [tipo_delito.trim(), id]);
+    await DelitoModel.updateDelito(id, tipo_delito.trim());
     res.json({ success: true, message: "Delito actualizado" });
   } catch (error) {
+    console.error("Error en updateDelito:", error);
     res.status(500).json({ success: false, message: "Error al actualizar" });
   }
 };
 
+// === API: Eliminar Delito ===
 export const deleteDelito = async (req, res) => {
   const { id } = req.params;
   try {
-    const [casos] = await pool.query("SELECT 1 FROM casos WHERE id_delito = ? LIMIT 1", [id]);
-    if (casos.length > 0) {
-      return res.status(400).json({ success: false, message: "Hay casos asociados" });
-    }
-    await pool.query("DELETE FROM delito WHERE id_delito = ?", [id]);
+    // Soft delete allows removing even if in use (historical data remains)
+    // const inUse = await DelitoModel.isDelitoInUse(id);
+    // if (inUse) {
+    //   return res.status(400).json({ success: false, message: "Hay casos asociados a este delito, no se puede eliminar." });
+    // }
+
+    await DelitoModel.deleteDelito(id);
     res.json({ success: true, message: "Delito eliminado" });
   } catch (error) {
+    console.error("Error en deleteDelito:", error);
     res.status(500).json({ success: false, message: "Error al borrar" });
+  }
+};
+
+// === Render: Lista de Casos Eliminados (Solo Admin) ===
+export const listarCasosEliminados = async (req, res) => {
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) {
+      return res.redirect("/dashboard");
+    }
+
+    const casos = await CasoModel.getCasosEliminados();
+
+    res.render("lista-casos-eliminados", {
+      casos,
+      currentUser: req.user,
+      _cacheBuster: Date.now()
+    });
+  } catch (error) {
+    console.error("Error al cargar casos eliminados:", error);
+    res.status(500).send("Error al cargar la lista de casos eliminados");
+  }
+};
+
+// === API: Restaurar Caso (Solo Admin) ===
+export const restaurarCaso = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) {
+      return res.status(403).json({ success: false, message: "Acceso denegado" });
+    }
+
+    const restored = await CasoModel.restoreCaso(id);
+    if (restored) {
+      res.json({ success: true, message: "Caso restaurado correctamente" });
+    } else {
+      res.status(404).json({ success: false, message: "Caso no encontrado o no estaba eliminado" });
+    }
+  } catch (error) {
+    console.error("Error al restaurar caso:", error);
+    res.status(500).json({ success: false, message: "Error al restaurar caso" });
+  }
+};
+
+// === API: Restaurar Delito (Solo Admin) ===
+export const restaurarDelito = async (req, res) => {
+  const { id } = req.params;
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) {
+      return res.status(403).json({ success: false, message: "Acceso denegado" });
+    }
+    await DelitoModel.restoreDelito(id);
+    res.json({ success: true, message: "Delito restaurado" });
+  } catch (error) {
+    console.error("Error en restaurarDelito:", error);
+    res.status(500).json({ success: false, message: "Error al restaurar" });
   }
 };
