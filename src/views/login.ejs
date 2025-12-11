@@ -4,23 +4,50 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Oficina de Víctimas de Delitos</title>
+  
+  <!-- Bootstrap y Estilos -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="/css/style.css" rel="stylesheet" type="text/css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    /* Estilos específicos para modo Admin */
+    .login-card.admin-mode {
+      border: 2px solid #dc3545; /* Borde rojo para admin */
+      box-shadow: 0 0 15px rgba(220, 53, 69, 0.3);
+    }
+    .login-card.admin-mode .login-header h1 {
+      color: #dc3545;
+    }
+    .login-card.admin-mode .btn-primary {
+      background-color: #dc3545;
+      border-color: #dc3545;
+    }
+    .login-card.admin-mode .btn-primary:hover {
+      background-color: #bb2d3b;
+      border-color: #b02a37;
+    }
+  </style>
 </head>
+
 <body class="login-page">
   <div class="login-container">
-    <div class="login-card">
+    <!-- Tarjeta de Login (Clase admin-mode condicional) -->
+    <div class="login-card <%= typeof isAdmin !== 'undefined' && isAdmin ? 'admin-mode' : '' %>">
+      
+      <!-- Header -->
       <div class="login-header">
         <div class="logo-container">
-          <img style="width: 50%" src="/img/logo-munii.png" alt="">
+          <img style="width: 50%" src="/img/logo-munii.png" alt="Logo Municipalidad">
         </div>
         <h1><%= typeof isAdmin !== 'undefined' && isAdmin ? 'Acceso Administrativo' : 'Oficina de Víctimas de Delitos' %></h1>
         <p>Municipalidad de Exaltación de la Cruz</p>
       </div>
 
+      <!-- Formulario -->
       <form id="formLogin" class="login-form" action="/login" method="POST">
         <input type="hidden" name="login_source" value="<%= typeof isAdmin !== 'undefined' && isAdmin ? 'admin' : 'operator' %>">
+        
         <div class="mb-3">
           <label for="username" class="form-label">Usuario</label>
           <input type="text" name="name" class="form-control" id="username" placeholder="Ingrese su usuario" required>
@@ -39,43 +66,45 @@
       </form>
     </div>
   </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
- <% if (alert) { %>
-  <% if (alert === "empty") { %>
-    <script>Swal.fire("Campos vacíos", "Por favor completa todos los campos.", "warning");</script>
-  <% } else if (alert === "credentials") { %>
-    <script>Swal.fire("Credenciales incorrectas", "Usuario o contraseña inválidos.", "error");</script>
-  <% } else if (alert === "success") { %>
+  <!-- Manejo de Alertas del Servidor -->
+  <% if (alert) { %>
+    <% if (alert === "empty") { %>
+      <script>Swal.fire("Campos vacíos", "Por favor completa todos los campos.", "warning");</script>
+    <% } else if (alert === "credentials") { %>
+      <script>Swal.fire("Credenciales incorrectas", "Usuario o contraseña inválidos.", "error");</script>
+    <% } else if (alert === "success") { %>
+      <script>
+        Swal.fire({
+          title: "Bienvenido",
+          text: "Inicio de sesión exitoso.",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false
+        }).then(() => { window.location.href = "/dashboard"; });
+      </script>
+    <% } else if (alert === "error") { %>
+      <script>Swal.fire("Error", "Ocurrió un problema en el login.", "error");</script>
+    <% } else if (alert === "expired") { %>
+      <script>Swal.fire("Sesión expirada", "Tu sesión ha caducado. Por favor, inicia sesión de nuevo.", "warning");</script>
+    <% } %>
+  <% } %>
+
+  <% if (alert === "logout") { %>
     <script>
       Swal.fire({
-        title: "Bienvenido",
-        text: "Inicio de sesión exitoso.",
-        icon: "success",
+        title: "Sesión cerrada",
+        text: "Cerraste sesión correctamente.",
+        icon: "info",
         timer: 2000,
         showConfirmButton: false
-      }).then(() => { window.location.href = "/dashboard"; });
+      });
     </script>
-  <% } else if (alert === "error") { %>
-    <script>Swal.fire("Error", "Ocurrió un problema en el login.", "error");</script>
-  <% } else if (alert === "expired") { %>
-    <script>Swal.fire("Sesión expirada", "Tu sesión ha caducado. Por favor, inicia sesión de nuevo.", "warning");</script>
   <% } %>
-<% } %>
-
-<% if (alert === "logout") { %>
-<script>
-Swal.fire({
-  title: "Sesión cerrada",
-  text: "Cerraste sesión correctamente.",
-  icon: "info",
-  timer: 2000,
-  showConfirmButton: false
-});
-</script>
-<% } %>
-
 
 </body>
 </html>

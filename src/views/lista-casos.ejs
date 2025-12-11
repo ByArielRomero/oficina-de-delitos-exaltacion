@@ -1,648 +1,514 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lista de Casos - OVD</title>
-    <!-- Bootstrap -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
-    />
-    <link rel="stylesheet" href="/css/style.css" />
-  </head>
-  <body>
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="/dashboard">
-          <i class="bi bi-shield-check"></i> OVD - Exaltación de la Cruz
-        </a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav me-auto">
-            <li class="nav-item">
-              <a class="nav-link" href="/dashboard">
-                <i class="bi bi-house-door"></i> Dashboard
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lista de Casos - OVD</title>
+
+  <!-- Bootstrap y Estilos -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+  <!-- =================================================================================
+         NAVBAR
+         ================================================================================= -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/dashboard">
+        <i class="bi bi-shield-check"></i> OVD - Exaltación de la Cruz
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/dashboard">
+              <i class="bi bi-house-door"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/agregar-persona">
+              <i class="bi bi-person-plus"></i> Agregar Persona
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/agregar-caso">
+              <i class="bi bi-file-earmark-plus"></i> Agregar Caso
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/lista-casos">
+              <i class="bi bi-list-ul"></i> Lista de Casos
+            </a>
+          </li>
+        </ul>
+        <div class="dropdown me-3">
+          <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i>
+            <span id="currentUser">
+              <% if (currentUser) { %>
+                <%= currentUser.nombre || currentUser.username %>
+                  <small class="text-light-50">
+                    (<%= Number(currentUser.rol)===1 ? 'Admin' : 'Operador' %>)
+                  </small>
+                  <% } else { %>
+                    Usuario
+                    <% } %>
+            </span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <a class="dropdown-item" href="/register">
+                <i class="bi bi-gear"></i> Configuración
               </a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/agregar-persona">
-                <i class="bi bi-person-plus"></i> Agregar Persona
-              </a>
+            <li>
+              <hr class="dropdown-divider" />
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/agregar-caso">
-                <i class="bi bi-file-earmark-plus"></i> Agregar Caso
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link active" href="/lista-casos">
-                <i class="bi bi-list-ul"></i> Lista de Casos
-              </a>
+            <li>
+              <button class="dropdown-item text-danger" onclick="logout()">
+                <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+              </button>
             </li>
           </ul>
-          <div class="dropdown me-3">
-            <button
-              class="btn btn-outline-light dropdown-toggle"
-              type="button"
-              data-bs-toggle="dropdown"
-            >
-              <i class="bi bi-person-circle"></i>
-              <span id="currentUser">
-                <% if (currentUser) { %> <%= currentUser.nombre ||
-                currentUser.username %>
-                <small class="text-light-50">
-                  (<%= Number(currentUser.rol) === 1 ? 'Admin' : 'Operador' %>)
-                </small>
-                <% } else { %> Usuario <% } %>
-              </span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li>
-                <a class="dropdown-item" href="/register">
-                  <i class="bi bi-gear"></i> Configuración
-                </a>
-              </li>
-              <li><hr class="dropdown-divider" /></li>
-              <li>
-                <button class="dropdown-item text-danger" onclick="logout()">
-                  <i class="bi bi-box-arrow-right"></i> Cerrar sesión
-                </button>
-              </li>
-            </ul>
-          </div>
         </div>
       </div>
-    </nav>
+    </div>
+  </nav>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <div class="container py-4">
-      <div class="row mb-3 align-items-center">
-        <div class="col-md-6">
-          <h4>
-            Lista de Casos
-            <i
-              class="bi bi-question-circle text-muted ms-2"
-              style="font-size: 0.8em; cursor: pointer"
-              data-bs-toggle="tooltip"
-              data-bs-html="true"
-              data-bs-delay='{"show":0,"hide":2000}'
-              title="Aquí puede visualizar, filtrar y gestionar todos los casos existentes. Utilice las opciones de búsqueda y exportación para generar reportes detallados.<br><br><a href='https://drive.google.com/file/d/1sMIfoI4tvc4icq5ZL6DaOKWN77CZAgdo/view?usp=drive_link' target='_blank' style='color: #fff; text-decoration: underline;'>Ver video tutorial</a>"
-            ></i>
-          </h4>
-        </div>
-        <div class="col-md-6 text-end">
-          <input
-            type="text"
-            id="searchInput"
-            class="form-control d-inline-block w-auto"
-            placeholder="Buscar..."
-          />
-        </div>
+  <!-- =================================================================================
+         CONTENIDO PRINCIPAL
+         ================================================================================= -->
+  <div class="container py-4">
+
+    <!-- Encabezado y Búsqueda -->
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-6">
+        <h4>
+          Lista de Casos
+          <i class="bi bi-question-circle text-muted ms-2" style="font-size: 0.8em; cursor: pointer"
+            data-bs-toggle="tooltip" data-bs-html="true" data-bs-delay='{"show":0,"hide":2000}'
+            title="Aquí puede visualizar, filtrar y gestionar todos los casos existentes. Utilice las opciones de búsqueda y exportación para generar reportes detallados.<br><br><a href='https://drive.google.com/file/d/1sMIfoI4tvc4icq5ZL6DaOKWN77CZAgdo/view?usp=drive_link' target='_blank' style='color: #fff; text-decoration: underline;'>Ver video tutorial</a>"></i>
+        </h4>
       </div>
+      <div class="col-md-6 text-end">
+        <input type="text" id="searchInput" class="form-control d-inline-block w-auto" placeholder="Buscar..." />
+      </div>
+    </div>
 
-      <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle">
-          <thead class="table-dark">
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Apellido</th>
-              <th>DNI</th>
-              <th>Teléfono</th>
-              <th>Tipo de Caso</th>
-              <th>Zona</th>
-              <th>Fecha Creación</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tablaCasos">
-            <% if (!casos || casos.length === 0) { %>
+    <!-- Tabla de Casos -->
+    <div class="table-responsive">
+      <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>DNI</th>
+            <th>Teléfono</th>
+            <th>Tipo de Caso</th>
+            <th>Zona</th>
+            <th>Fecha Creación</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaCasos">
+          <% if (!casos || casos.length===0) { %>
             <tr>
               <td colspan="10" class="text-center text-muted">
                 No hay casos registrados
               </td>
             </tr>
-            <% } else { %> <% casos.forEach(caso => { %>
-            <tr>
-              <td><%= caso.id %></td>
-              <td><%= caso.nombre %></td>
-              <td><%= caso.apellido %></td>
-              <td><%= caso.dni %></td>
-              <td><%= caso.telefono || '-' %></td>
-              <td><%= caso.tipo_caso %></td>
-              <td><%= caso.zona %></td>
+            <% } else { %>
+              <% casos.forEach(caso=> { %>
+                <tr>
+                  <td>
+                    <%= caso.id %>
+                  </td>
+                  <td>
+                    <%= caso.nombre %>
+                  </td>
+                  <td>
+                    <%= caso.apellido %>
+                  </td>
+                  <td>
+                    <%= caso.dni %>
+                  </td>
+                  <td>
+                    <%= caso.telefono || '-' %>
+                  </td>
+                  <td>
+                    <%= caso.tipo_caso %>
+                  </td>
+                  <td>
+                    <%= caso.zona %>
+                  </td>
+                  <td data-fecha="<%= caso.fecha_creada ? new Date(caso.fecha_creada).toISOString() : '' %>">
+                    <%= caso.fecha_creada ? new Date(caso.fecha_creada).toLocaleDateString('es-AR', {
+                      timeZone: 'America/Argentina/Buenos_Aires' }) : '-' %>
+                  </td>
+                  <td>
+                    <% const estado=(caso.estado==='Pendiente' ? 'Pendiente' : caso.estado) || 'Pendiente' ; let
+                      badgeClass='bg-secondary' ; if (estado==='Pendiente' ) badgeClass='bg-warning text-dark' ; else if
+                      (estado==='Resuelto' ) badgeClass='bg-success' ; else if (estado==='Cancelado' )
+                      badgeClass='bg-danger' ; %>
+                      <span class="badge <%= badgeClass %>">
+                        <%= estado %>
+                      </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-info btn-sm" onclick="verDetalles('<%= caso.id %>')" title="Ver detalles">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-warning btn-sm" onclick="editarCaso('<%= caso.id %>')" title="Editar">
+                      ✏️
+                    </button>
+                    <% if (currentUser && Number(currentUser.rol)===1) { %>
+                      <button class="btn btn-danger btn-sm" onclick="eliminarCaso('<%= caso.id %>')" title="Eliminar">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                      <% } %>
+                  </td>
+                </tr>
+                <% }) %>
+                  <% } %>
+        </tbody>
+      </table>
+    </div>
 
-              <td
-  data-fecha="<%= caso.fecha_creada ? new Date(caso.fecha_creada).toISOString() : '' %>"
->
-  <%= caso.fecha_creada ? new Date(caso.fecha_creada).toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' }) : '-' %>
-</td>
+    <!-- Paginación -->
+    <div class="d-flex justify-content-center mt-4">
+      <nav aria-label="Paginación de casos">
+        <ul class="pagination" id="paginacion">
+          <!-- Se genera con JS -->
+        </ul>
+      </nav>
+    </div>
 
-              <td>
-                <% const estado = (caso.estado === 'Pendiente' ? 'Pendiente' :
-                caso.estado) || 'Pendiente'; let badgeClass = 'bg-secondary'; if
-                (estado === 'Pendiente') badgeClass = 'bg-warning text-dark';
-                else if (estado === 'Resuelto') badgeClass = 'bg-success'; else
-                if (estado === 'Cancelado') badgeClass = 'bg-danger'; %>
-                <span class="badge <%= badgeClass %>"><%= estado %></span>
-              </td>
-
-              <td>
-                <button
-                  class="btn btn-info btn-sm"
-                  onclick="verDetalles('<%= caso.id %>')"
-                  title="Ver detalles"
-                >
-                  <i class="bi bi-eye"></i>
-                </button>
-                <button
-                  class="btn btn-warning btn-sm"
-                  onclick="editarCaso('<%= caso.id %>')"
-                  title="Editar"
-                >
-                  ✏️ 
-                </button>
-
-                <% if (currentUser && Number(currentUser.rol) === 1) { %>
-                <button
-                  class="btn btn-danger btn-sm"
-                  onclick="eliminarCaso('<%= caso.id %>')"
-                  title="Eliminar"
-                >
-                  <i class="bi bi-trash"></i>
-                </button>
-                <% } %>
-              </td>
-            </tr>
-            <% }) %> <% } %>
-          </tbody>
-        </table>
-      </div>
-      <!-- PAGINACIÓN -->
-      <div class="d-flex justify-content-center mt-4">
-        <nav aria-label="Paginación de casos">
-          <ul class="pagination" id="paginacion">
-            <!-- Se genera con JS -->
-          </ul>
-        </nav>
-      </div>
-      <!-- Filtros y Exportación -->
-      <div class="d-flex justify-content-end my-4">
-        <div style="width: 400px">
-          <div class="row g-2 mb-2">
-            <div class="col">
-              <label class="form-label">Desde</label>
-              <input
-                type="date"
-                id="fechaDesde"
-                class="form-control form-control-sm"
-              />
-            </div>
-            <div class="col">
-              <label class="form-label">Hasta</label>
-              <input
-                type="date"
-                id="fechaHasta"
-                class="form-control form-control-sm"
-              />
-            </div>
+    <!-- Filtros y Exportación -->
+    <div class="d-flex justify-content-end my-4">
+      <div style="width: 400px">
+        <div class="row g-2 mb-2">
+          <div class="col">
+            <label class="form-label">Desde</label>
+            <input type="date" id="fechaDesde" class="form-control form-control-sm" />
           </div>
-          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <button style="display: none;" id="btnExportFiltro" class="btn btn-outline-primary btn-sm">
-              Filtrar
-            </button>
-            <button id="btnExcel" class="btn btn-success btn-sm">Excel</button>
-            <button id="btnPDF" class="btn btn-danger btn-sm">PDF</button>
+          <div class="col">
+            <label class="form-label">Hasta</label>
+            <input type="date" id="fechaHasta" class="form-control form-control-sm" />
           </div>
+        </div>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+          <button style="display: none;" id="btnExportFiltro" class="btn btn-outline-primary btn-sm">
+            Filtrar
+          </button>
+          <button id="btnExcel" class="btn btn-success btn-sm">Excel</button>
+          <button id="btnPDF" class="btn btn-danger btn-sm">PDF</button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- MODAL DETALLES -->
-    <div class="modal fade" id="modalDetalles" tabindex="-1">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Detalles del Caso</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
-          </div>
-          <div class="modal-body" id="detallesCaso">
-            <!-- Cargado con JS -->
-          </div>
+  <!-- =================================================================================
+         MODALES
+         ================================================================================= -->
+
+  <!-- Modal Detalles -->
+  <div class="modal fade" id="modalDetalles" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Detalles del Caso</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="detallesCaso">
+          <!-- Cargado con JS -->
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- MODAL EDITAR -->
-    <div class="modal fade" id="modalEditar" tabindex="-1">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Editar Caso</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <form id="formEditarCaso">
-              <input type="hidden" id="editCasoId" />
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label">Nombre</label>
-                  <input
-                    type="text"
-                    id="editNombre"
-                    class="form-control"
-                    required
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Apellido</label>
-                  <input
-                    type="text"
-                    id="editApellido"
-                    class="form-control"
-                    required
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">DNI</label>
-                  <input
-                    type="text"
-                    id="editDNI"
-                    class="form-control"
-                    required
-                    minlength="8"
-                    maxlength="8"
-                    pattern="[0-9]{8}"
-                    title="Solo números, de 8 digitos"
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Teléfono</label>
-                  <input 
-                    type="text" 
-                    id="editTelefono" 
-                    class="form-control" 
-                    required
-                    minlength="8"
-                    maxlength="15"
-                    pattern="\d{8,15}"
-                    title="Solo números, de 8 a 15 dígitos"
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Tipo de Caso</label>
-                  <select
-                    id="editTipoCaso"
-                    class="form-select"
-                    required
-                  ></select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Zona</label>
-                  <select id="editZona" class="form-select" required></select>
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Estado</label>
-                  <select id="editEstado" class="form-select" required>
-                    <option value="Pendiente">Pendiente</option>
-                    <option value="Resuelto">Resuelto</option>
-                    <option value="Cancelado">Cancelado</option>
-                  </select>
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Observaciones</label>
-                  <textarea
-                    id="editObservaciones"
-                    class="form-control"
-                    rows="3"
-                  ></textarea>
-                </div>
+  <!-- Modal Editar -->
+  <div class="modal fade" id="modalEditar" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Editar Caso</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formEditarCaso">
+            <input type="hidden" id="editCasoId" />
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Nombre</label>
+                <input type="text" id="editNombre" class="form-control" required />
               </div>
-              <div class="d-grid mt-3">
-                <button type="submit" class="btn btn-primary">
-                  <i class="bi bi-save"></i> Guardar Cambios
-                </button>
+              <div class="col-md-6">
+                <label class="form-label">Apellido</label>
+                <input type="text" id="editApellido" class="form-control" required />
               </div>
-            </form>
-          </div>
+              <div class="col-md-6">
+                <label class="form-label">DNI</label>
+                <input type="text" id="editDNI" class="form-control" required minlength="7" maxlength="9"
+                  pattern="[0-9]{7,9}" title="Solo números, de 7, 8 o 9 digitos" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Teléfono</label>
+                <input type="text" id="editTelefono" class="form-control" required minlength="8" maxlength="15"
+                  pattern="\d{8,15}" title="Solo números, de 8 a 15 dígitos" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Tipo de Caso</label>
+                <select id="editTipoCaso" class="form-select" required></select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Zona</label>
+                <select id="editZona" class="form-select" required></select>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Estado</label>
+                <select id="editEstado" class="form-select" required>
+                  <option value="Pendiente">Pendiente</option>
+                  <option value="Resuelto">Resuelto</option>
+                  <option value="Cancelado">Cancelado</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Observaciones</label>
+                <textarea id="editObservaciones" class="form-control" rows="3"></textarea>
+              </div>
+            </div>
+            <div class="d-grid mt-3">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Guardar Cambios
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- =================================================================================
+         SCRIPTS
+         ================================================================================= -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <script>
-      // ====================== PAGINACIÓN + FILTROS (TODO JUNTO) ======================
-      const ITEMS_POR_PAGINA = 10;
-      let paginaActual = 1;
-      let filasOriginales = [];
+  <script>
+    // =================================================================================
+    // PAGINACIÓN Y FILTROS
+    // =================================================================================
+    const ITEMS_POR_PAGINA = 10;
+    let paginaActual = 1;
+    let filasOriginales = [];
 
-      // Cuando carga la página
-      document.addEventListener("DOMContentLoaded", () => {
-        filasOriginales = Array.from(
-          document.querySelectorAll("#tablaCasos tr")
-        );
-        aplicarFiltrosYPagina();
-        document.getElementById("fechaHasta").valueAsDate = new Date();
+    document.addEventListener("DOMContentLoaded", () => {
+      filasOriginales = Array.from(document.querySelectorAll("#tablaCasos tr"));
+      aplicarFiltrosYPagina();
+      document.getElementById("fechaHasta").valueAsDate = new Date();
 
-        // Inicializar tooltips
-        var tooltipTriggerList = [].slice.call(
-          document.querySelectorAll('[data-bs-toggle="tooltip"]')
-        );
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-          return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
+      // Inicializar tooltips
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
       });
+    });
 
-      // FUNCIÓN ÚNICA QUE HACE TODO: filtra + paginación
-      function aplicarFiltrosYPagina() {
-  const search = document.getElementById("searchInput").value.toLowerCase().trim();
-let desde = document.getElementById("fechaDesde").value ? new Date(document.getElementById("fechaDesde").value + 'T00:00:00') : null;  // ← Fuerza 00:00 local
-let hasta = document.getElementById("fechaHasta").value ? new Date(document.getElementById("fechaHasta").value + 'T23:59:59.999') : null;  // ← Fuerza 23:59 local
-  if (hasta) hasta.setHours(23, 59, 59, 999);
+    function aplicarFiltrosYPagina() {
+      const search = document.getElementById("searchInput").value.toLowerCase().trim();
+      let desde = document.getElementById("fechaDesde").value ? new Date(document.getElementById("fechaDesde").value + 'T00:00:00') : null;
+      let hasta = document.getElementById("fechaHasta").value ? new Date(document.getElementById("fechaHasta").value + 'T23:59:59.999') : null;
+      if (hasta) hasta.setHours(23, 59, 59, 999);
 
-  let filasVisibles = [];
+      let filasVisibles = [];
 
-  filasOriginales.forEach((row) => {
-    const cells = row.querySelectorAll("td");
+      filasOriginales.forEach((row) => {
+        const cells = row.querySelectorAll("td");
+        const texto = Array.from(cells).map(cell => {
+          if (cell.querySelector('.badge')) return cell.querySelector('.badge').textContent.toLowerCase();
+          if (cell.dataset.fecha) {
+            const fecha = new Date(cell.dataset.fecha);
+            return cell.textContent.toLowerCase() + ' ' + fecha.toLocaleDateString('es-AR');
+          }
+          return cell.textContent.toLowerCase();
+        }).join(' ');
 
-    // MEJOR BUSQUEDA: incluye badge, fecha ISO y formato visible
-    const texto = Array.from(cells).map(cell => {
-      if (cell.querySelector('.badge')) {
-        return cell.querySelector('.badge').textContent.toLowerCase();
-      }
-      if (cell.dataset.fecha) {
-        const fecha = new Date(cell.dataset.fecha);
-        return cell.textContent.toLowerCase() + ' ' + fecha.toLocaleDateString('es-AR');
-      }
-      return cell.textContent.toLowerCase();
-    }).join(' ');
+        const fechaCell = cells[7];
+        const fechaIso = fechaCell?.dataset.fecha;
+        const fecha = fechaIso ? new Date(fechaIso) : null;
 
-    const fechaCell = cells[7];
-    const fechaIso = fechaCell?.dataset.fecha;
-    const fecha = fechaIso ? new Date(fechaIso) : null;
+        const cumpleBusqueda = texto.includes(search);
+        const cumpleFecha = (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
 
-    const cumpleBusqueda = texto.includes(search);
-    const cumpleFecha = (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
-
-    if (cumpleBusqueda && cumpleFecha) {
-      row.style.display = "";
-      filasVisibles.push(row);
-    } else {
-      row.style.display = "none";
-    }
-  });
-
-        // PAGINACIÓN
-        const totalPaginas = Math.ceil(filasVisibles.length / ITEMS_POR_PAGINA);
-        paginaActual = 1; // siempre vuelve a página 1 al filtrar
-
-        // Ocultar todas
-        filasOriginales.forEach((r) => (r.style.display = "none"));
-        // Mostrar solo las de la página 1
-        filasVisibles
-          .slice(0, ITEMS_POR_PAGINA)
-          .forEach((r) => (r.style.display = ""));
-
-        // Generar botones
-        const paginacion = document.getElementById("paginacion");
-        paginacion.innerHTML = "";
-
-        if (totalPaginas <= 1) return;
-
-        // Anterior
-        paginacion.innerHTML += `<li class="page-item"><a class="page-link" href="#" onclick="cambiarPagina(1)">Anterior</a></li>`;
-
-        // Números
-        for (let i = 1; i <= totalPaginas; i++) {
-          paginacion.innerHTML += `
-      <li class="page-item ${i === 1 ? "active" : ""}">
-        <a class="page-link" href="#" onclick="cambiarPagina(${i})">${i}</a>
-      </li>`;
-        }
-
-        // Siguiente
-        paginacion.innerHTML += `<li class="page-item"><a class="page-link" href="#" onclick="cambiarPagina(2)">Siguiente</a></li>`;
-      }
-
-      // Cambiar página
-      window.cambiarPagina = function (pag) {
-  const search = document.getElementById("searchInput").value.toLowerCase().trim();
-  const desde = document.getElementById("fechaDesde").value ? new Date(document.getElementById("fechaDesde").value) : null;
-  const hasta = document.getElementById("fechaHasta").value ? new Date(document.getElementById("fechaHasta").value) : null;
-  if (hasta) hasta.setHours(23, 59, 59, 999);
-
-  let filasVisibles = [];
-
-  filasOriginales.forEach((row) => {
-    const cells = row.querySelectorAll("td");
-
-    const texto = Array.from(cells).map(cell => {
-      if (cell.querySelector('.badge')) {
-        return cell.querySelector('.badge').textContent.toLowerCase();
-      }
-      if (cell.dataset.fecha) {
-        const fecha = new Date(cell.dataset.fecha);
-        return cell.textContent.toLowerCase() + ' ' + fecha.toLocaleDateString('es-AR');
-      }
-      return cell.textContent.toLowerCase();
-    }).join(' ');
-
-    const fechaCell = cells[7];
-    const fechaIso = fechaCell?.dataset.fecha;
-    const fecha = fechaIso ? new Date(fechaIso) : null;
-
-    const cumpleBusqueda = texto.includes(search);
-    const cumpleFecha = (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
-
-    if (cumpleBusqueda && cumpleFecha) {
-      filasVisibles.push(row);
-    }
-  });
-
-  const inicio = (pag - 1) * ITEMS_POR_PAGINA;
-  const fin = inicio + ITEMS_POR_PAGINA;
-
-  filasOriginales.forEach((r) => (r.style.display = "none"));
-  filasVisibles.slice(inicio, fin).forEach((r) => (r.style.display = ""));
-
-        // Actualizar active
-        document
-          .querySelectorAll("#paginacion .page-item")
-          .forEach((li, index) => {
-            if (
-              index === 0 ||
-              index ===
-                document.querySelectorAll("#paginacion .page-item").length - 1
-            )
-              return;
-            li.classList.toggle("active", index === pag);
-          });
-
-        // Scroll suave
-        document
-          .querySelector(".table-responsive")
-          .scrollIntoView({ behavior: "smooth" });
-      };
-
-      // Eventos de filtros
-      ["searchInput", "fechaDesde", "fechaHasta"].forEach((id) => {
-        document
-          .getElementById(id)
-          .addEventListener("input", aplicarFiltrosYPagina);
-      });
-      document
-      .getElementById("btnExportFiltro")
-      .addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        aplicarFiltrosYPagina();
-      });
-      // ====================== EXPORTAR ======================
-      // ====================== EXPORTAR TODOS LOS CASOS (NO SOLO LOS 10 VISIBLES) ======================
-      function exportar(formato) {
-        // 1. RECALCULAR QUÉ FILAS ESTÁN VISIBLES SEGÚN EL FILTRO ACTUAL (CON AJUSTE DE FECHAS)
-        const search = document
-          .getElementById("searchInput")
-          .value.toLowerCase()
-          .trim();
-        let desde = document.getElementById("fechaDesde").value ? new Date(document.getElementById("fechaDesde").value + 'T00:00:00') : null;  // ← Fuerza 00:00 local
-        let hasta = document.getElementById("fechaHasta").value ? new Date(document.getElementById("fechaHasta").value + 'T23:59:59.999') : null;  // ← Fuerza 23:59 local
-
-        const filasFiltradas = filasOriginales.filter((row) => {
-          const cells = row.querySelectorAll("td");
-          const texto = Array.from(cells)
-            .map((c) => c.textContent.toLowerCase())
-            .join(" ");
-          const fechaCell = cells[7];
-          const fechaIso = fechaCell?.dataset.fecha;
-          const fecha = fechaIso ? new Date(fechaIso) : null;
-          const cumpleBusqueda = texto.includes(search);
-          const cumpleFecha = (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
-          return cumpleBusqueda && cumpleFecha;
-        });
-
-        if (filasFiltradas.length === 0) {
-          Swal.fire({
-            title: "Sin datos",
-            text: "No hay casos para exportar con el filtro actual",
-            icon: "info",
-            confirmButtonText: "OK"
-          });
-          return;
-       }
-
-        // 2. ARMAR LOS DATOS DE TODAS LAS FILAS FILTRADAS
-        const datos = filasFiltradas.map((row) => {
-          const celdas = row.querySelectorAll("td");
-          return {
-            ID: celdas[0]?.textContent.trim(),
-            Nombre: celdas[1]?.textContent.trim(),
-            Apellido: celdas[2]?.textContent.trim(),
-            DNI: celdas[3]?.textContent.trim(),
-            Teléfono: celdas[4]?.textContent.trim() || "-",
-            "Tipo Caso": celdas[5]?.textContent.trim(),
-            Zona: celdas[6]?.textContent.trim(),
-            Fecha: celdas[7]?.textContent.trim(),
-            Estado:
-              celdas[8]?.querySelector(".badge")?.textContent.trim() ||
-              celdas[8]?.textContent.trim(),
-          };
-        });
-
-        // 3. EXPORTAR
-        if (formato === "excel") {
-          const wb = XLSX.utils.book_new();
-          const ws = XLSX.utils.json_to_sheet(datos);
-          XLSX.utils.book_append_sheet(wb, ws, "Casos");
-          XLSX.writeFile(
-            wb,
-            `casos_OVD_${new Date().toLocaleDateString("es-AR")}.xlsx`
-          );
+        if (cumpleBusqueda && cumpleFecha) {
+          row.style.display = "";
+          filasVisibles.push(row);
         } else {
-          const { jsPDF } = window.jspdf;
-          const doc = new jsPDF("l", "mm", "a4"); // horizontal
-
-          // Título lindo
-          doc.setFontSize(18);
-          doc.setTextColor(0, 101, 189);
-          doc.text(
-            "LISTA COMPLETA DE CASOS - OVD Exaltación de la Cruz",
-            15,
-            20
-          );
-
-          doc.setFontSize(10);
-          doc.setTextColor(100);
-          doc.text(`Total: ${datos.length} casos`, 15, 30);
-          doc.text(`Generado: ${new Date().toLocaleString("es-AR")}`, 15, 37);
-
-          // Tabla con todos los datos
-          doc.autoTable({
-            head: [Object.keys(datos[0])],
-            body: datos.map(Object.values),
-            startY: 45,
-            theme: "grid",
-            styles: { fontSize: 8, cellPadding: 3 },
-            headStyles: {
-              fillColor: [0, 101, 189],
-              textColor: 255,
-              fontStyle: "bold",
-            },
-            columnStyles: {
-              0: { cellWidth: 15 },
-              1: { cellWidth: 28 },
-              2: { cellWidth: 28 },
-              3: { cellWidth: 22 },
-              4: { cellWidth: 28 },
-              5: { cellWidth: 40 },
-              6: { cellWidth: 28 },
-              7: { cellWidth: 35 },
-              8: { cellWidth: 22 },
-            },
-            didDrawPage: (data) => {
-              // Pie de página
-              const pageCount = doc.internal.getNumberOfPages();
-              doc.setFontSize(8);
-              doc.setTextColor(150);
-              doc.text(`Página ${data.pageNumber} de ${pageCount}`, 280, 205, {
-                align: "right",
-              });
-            },
-          });
-
-          doc.save(`casos_OVD_${new Date().toLocaleDateString("es-AR")}.pdf`);
+          row.style.display = "none";
         }
+      });
 
-        // Mensaje final
-        Swal.fire({
+      const totalPaginas = Math.ceil(filasVisibles.length / ITEMS_POR_PAGINA);
+      paginaActual = 1;
+
+      filasOriginales.forEach((r) => (r.style.display = "none"));
+      filasVisibles.slice(0, ITEMS_POR_PAGINA).forEach((r) => (r.style.display = ""));
+
+      generarPaginacion(totalPaginas);
+    }
+
+    function generarPaginacion(totalPaginas) {
+      const paginacion = document.getElementById("paginacion");
+      paginacion.innerHTML = "";
+      if (totalPaginas <= 1) return;
+
+      paginacion.innerHTML += `<li class="page-item"><a class="page-link" href="#" onclick="cambiarPagina(1)">Anterior</a></li>`;
+      for (let i = 1; i <= totalPaginas; i++) {
+        paginacion.innerHTML += `
+            <li class="page-item ${i === 1 ? "active" : ""}">
+              <a class="page-link" href="#" onclick="cambiarPagina(${i})">${i}</a>
+            </li>`;
+      }
+      paginacion.innerHTML += `<li class="page-item"><a class="page-link" href="#" onclick="cambiarPagina(2)">Siguiente</a></li>`;
+    }
+
+    window.cambiarPagina = function (pag) {
+      const search = document.getElementById("searchInput").value.toLowerCase().trim();
+      const desde = document.getElementById("fechaDesde").value ? new Date(document.getElementById("fechaDesde").value) : null;
+      const hasta = document.getElementById("fechaHasta").value ? new Date(document.getElementById("fechaHasta").value) : null;
+      if (hasta) hasta.setHours(23, 59, 59, 999);
+
+      let filasVisibles = [];
+      filasOriginales.forEach((row) => {
+        const cells = row.querySelectorAll("td");
+        const texto = Array.from(cells).map(cell => {
+          if (cell.querySelector('.badge')) return cell.querySelector('.badge').textContent.toLowerCase();
+          if (cell.dataset.fecha) {
+            const fecha = new Date(cell.dataset.fecha);
+            return cell.textContent.toLowerCase() + ' ' + fecha.toLocaleDateString('es-AR');
+          }
+          return cell.textContent.toLowerCase();
+        }).join(' ');
+
+        const fechaCell = cells[7];
+        const fechaIso = fechaCell?.dataset.fecha;
+        const fecha = fechaIso ? new Date(fechaIso) : null;
+
+        const cumpleBusqueda = texto.includes(search);
+        const cumpleFecha = (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
+
+        if (cumpleBusqueda && cumpleFecha) filasVisibles.push(row);
+      });
+
+      const inicio = (pag - 1) * ITEMS_POR_PAGINA;
+      const fin = inicio + ITEMS_POR_PAGINA;
+
+      filasOriginales.forEach((r) => (r.style.display = "none"));
+      filasVisibles.slice(inicio, fin).forEach((r) => (r.style.display = ""));
+
+      document.querySelectorAll("#paginacion .page-item").forEach((li, index) => {
+        if (index === 0 || index === document.querySelectorAll("#paginacion .page-item").length - 1) return;
+        li.classList.toggle("active", index === pag);
+      });
+
+      document.querySelector(".table-responsive").scrollIntoView({ behavior: "smooth" });
+    };
+
+    // Listeners Filtros
+    ["searchInput", "fechaDesde", "fechaHasta"].forEach((id) => {
+      document.getElementById(id).addEventListener("input", aplicarFiltrosYPagina);
+    });
+    document.getElementById("btnExportFiltro").addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      aplicarFiltrosYPagina();
+    });
+
+    // =================================================================================
+    // EXPORTACIÓN
+    // =================================================================================
+    function exportar(formato) {
+      const search = document.getElementById("searchInput").value.toLowerCase().trim();
+      let desde = document.getElementById("fechaDesde").value ? new Date(document.getElementById("fechaDesde").value + 'T00:00:00') : null;
+      let hasta = document.getElementById("fechaHasta").value ? new Date(document.getElementById("fechaHasta").value + 'T23:59:59.999') : null;
+
+      const filasFiltradas = filasOriginales.filter((row) => {
+        const cells = row.querySelectorAll("td");
+        const texto = Array.from(cells).map((c) => c.textContent.toLowerCase()).join(" ");
+        const fechaCell = cells[7];
+        const fechaIso = fechaCell?.dataset.fecha;
+        const fecha = fechaIso ? new Date(fechaIso) : null;
+        const cumpleBusqueda = texto.includes(search);
+        const cumpleFecha = (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
+        return cumpleBusqueda && cumpleFecha;
+      });
+
+      if (filasFiltradas.length === 0) {
+        Swal.fire({ title: "Sin datos", text: "No hay casos para exportar con el filtro actual", icon: "info", confirmButtonText: "OK" });
+        return;
+      }
+
+      const datos = filasFiltradas.map((row) => {
+        const celdas = row.querySelectorAll("td");
+        return {
+          ID: celdas[0]?.textContent.trim(),
+          Nombre: celdas[1]?.textContent.trim(),
+          Apellido: celdas[2]?.textContent.trim(),
+          DNI: celdas[3]?.textContent.trim(),
+          Teléfono: celdas[4]?.textContent.trim() || "-",
+          "Tipo Caso": celdas[5]?.textContent.trim(),
+          Zona: celdas[6]?.textContent.trim(),
+          Fecha: celdas[7]?.textContent.trim(),
+          Estado: celdas[8]?.querySelector(".badge")?.textContent.trim() || celdas[8]?.textContent.trim(),
+        };
+      });
+
+      if (formato === "excel") {
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(datos);
+        XLSX.utils.book_append_sheet(wb, ws, "Casos");
+        XLSX.writeFile(wb, `casos_OVD_${new Date().toLocaleDateString("es-AR")}.xlsx`);
+      } else {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF("l", "mm", "a4");
+        doc.setFontSize(18);
+        doc.setTextColor(0, 101, 189);
+        doc.text("LISTA COMPLETA DE CASOS - OVD Exaltación de la Cruz", 15, 20);
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Total: ${datos.length} casos`, 15, 30);
+        doc.text(`Generado: ${new Date().toLocaleString("es-AR")}`, 15, 37);
+
+        doc.autoTable({
+          head: [Object.keys(datos[0])],
+          body: datos.map(Object.values),
+          startY: 45,
+          theme: "grid",
+          styles: { fontSize: 8, cellPadding: 3 },
+          headStyles: { fillColor: [0, 101, 189], textColor: 255, fontStyle: "bold" },
+          columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 28 }, 2: { cellWidth: 28 }, 3: { cellWidth: 22 }, 4: { cellWidth: 28 }, 5: { cellWidth: 40 }, 6: { cellWidth: 28 }, 7: { cellWidth: 35 }, 8: { cellWidth: 22 } },
+          didDrawPage: (data) => {
+            const pageCount = doc.internal.getNumberOfPages();
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(`Página ${data.pageNumber} de ${pageCount}`, 280, 205, { align: "right" });
+          },
+        });
+        doc.save(`casos_OVD_${new Date().toLocaleDateString("es-AR")}.pdf`);
+      }
+
+      Swal.fire({
         title: "¡Exportado!",
         html: `<strong>${datos.length}</strong> casos exportados correctamente<br><small>Formato: <strong>${formato === 'excel' ? 'Excel' : 'PDF'}</strong></small>`,
         icon: "success",
@@ -650,197 +516,182 @@ let hasta = document.getElementById("fechaHasta").value ? new Date(document.getE
         timerProgressBar: true,
         showConfirmButton: false
       });
+    }
+
+    document.getElementById("btnExcel").addEventListener("click", () => exportar("excel"));
+    document.getElementById("btnPDF").addEventListener("click", () => exportar("pdf"));
+
+    // =================================================================================
+    // ACCIONES DE CASO (VER, EDITAR, ELIMINAR)
+    // =================================================================================
+    async function logout() {
+      try {
+        await fetch("/logout", { method: "POST", credentials: "include" });
+        window.location.href = "/login?alert=logout";
+      } catch (err) {
+        alert("Error al cerrar sesión");
+      }
+    }
+
+    async function verDetalles(casoId) {
+      try {
+        const res = await fetch(`/api/casos/${casoId}`, { credentials: "include" });
+        if (!res.ok) throw new Error("Error");
+        const { caso } = await res.json();
+        const html = `
+            <div class="row">
+              <div class="col-md-6"><strong>Nombre:</strong> ${caso.nombre} ${caso.apellido}</div>
+              <div class="col-md-6"><strong>Zona:</strong> ${caso.zona}</div>
+              <div class="col-md-6"><strong>DNI:</strong> ${caso.dni}</div>
+              <div class="col-md-6"><strong>Tipo de Caso:</strong> ${caso.tipo_caso}</div>
+              <div class="col-md-6"><strong>Teléfono:</strong> ${caso.telefono || "-"}</div>
+              <div class="col-md-6"><strong>Estado:</strong> <span class="badge ${getBadgeClass(caso.estado)}">${caso.estado}</span></div>
+              <div class="col-12"><strong>Observaciones:</strong> ${caso.observacion || '<em class="text-muted">Sin observaciones</em>'}</div>
+              <div class="col-md-6"><strong>Fecha:</strong> ${new Date(caso.fecha_creada).toLocaleString("es-AR", { timeZone: 'America/Argentina/Buenos_Aires', hour12: false })}</div>
+              <div class="col-md-6"><strong>Fecha Actualizada:</strong> ${caso.fecha_actualizado ? new Date(caso.fecha_actualizado).toLocaleString("es-AR", { timeZone: 'America/Argentina/Buenos_Aires', hour12: false }) : '<em class="text-muted">No actualizada</em>'}</div>
+            </div>`;
+        document.getElementById("detallesCaso").innerHTML = html;
+        new bootstrap.Modal(document.getElementById("modalDetalles")).show();
+      } catch (err) {
+        alert("Error al cargar detalles");
+      }
+    }
+
+    function getBadgeClass(estado) {
+      if (estado === "Pendiente") return "bg-warning text-dark";
+      if (estado === "Resuelto") return "bg-success";
+      if (estado === "Cancelado") return "bg-danger";
+      return "bg-secondary";
+    }
+
+    async function editarCaso(casoId) {
+      try {
+        const res = await fetch(`/api/casos/${casoId}`, { credentials: "include" });
+        if (!res.ok) throw new Error("Error");
+        const { caso, delitos, zonas } = await res.json();
+
+        document.getElementById("editCasoId").value = caso.id;
+        document.getElementById("editNombre").value = caso.nombre;
+        document.getElementById("editApellido").value = caso.apellido;
+        document.getElementById("editDNI").value = caso.dni;
+        document.getElementById("editTelefono").value = caso.telefono || "";
+        document.getElementById("editEstado").value = caso.estado || "Pendiente";
+        document.getElementById("editObservaciones").value = caso.observacion || "";
+
+        document.getElementById("editTipoCaso").innerHTML = delitos.map(d => `<option value="${d.id_delito}" ${d.id_delito === caso.id_delito ? "selected" : ""}>${d.tipo_delito}</option>`).join("");
+        document.getElementById("editZona").innerHTML = zonas.map(z => `<option value="${z.id_zona}" ${z.id_zona === caso.id_zona ? "selected" : ""}>${z.nombre_zona}</option>`).join("");
+
+        new bootstrap.Modal(document.getElementById("modalEditar")).show();
+      } catch (err) {
+        alert("Error al cargar caso");
+      }
+    }
+
+    document.getElementById("formEditarCaso").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = document.getElementById("editCasoId").value;
+
+      const nombre = document.getElementById("editNombre").value.trim();
+      const apellido = document.getElementById("editApellido").value.trim();
+      const dni = document.getElementById("editDNI").value.trim();
+      const telefono = document.getElementById("editTelefono").value.trim();
+      const tipo_caso = document.getElementById("editTipoCaso").value;
+      const zona = document.getElementById("editZona").value;
+      const estado = document.getElementById("editEstado").value;
+      const observaciones = document.getElementById("editObservaciones").value.trim();
+
+      // Validación específica
+      let errores = [];
+      if (!nombre) errores.push("Falta el Nombre");
+      if (!apellido) errores.push("Falta el Apellido");
+
+      if (!dni || dni.length < 7 || dni.length > 9) {
+        errores.push("El DNI debe tener entre 7 y 9 dígitos");
       }
 
-      // Botones (igual que antes)
-      document
-        .getElementById("btnExcel")
-        .addEventListener("click", () => exportar("excel"));
-      document
-        .getElementById("btnPDF")
-        .addEventListener("click", () => exportar("pdf"));
-
-      // ====================== TUS FUNCIONES ORIGINALES ======================
-      async function logout() {
-        try {
-          await fetch("/logout", { method: "POST", credentials: "include" });
-          window.location.href = "/login?alert=logout";
-        } catch (err) {
-          alert("Error al cerrar sesión");
-        }
+      if (!telefono || telefono.length < 8 || telefono.length > 15) {
+        errores.push("El Teléfono debe tener entre 8 y 15 dígitos");
       }
 
-      async function verDetalles(casoId) {
-        try {
-          const res = await fetch(`/api/casos/${casoId}`);
-          if (!res.ok) throw new Error("Error");
-          const { caso } = await res.json();
-          const html = `
-      <div class="row">
-        <div class="col-md-6"><strong>Nombre:</strong> ${caso.nombre} ${
-            caso.apellido
-          }</div>
-        <div class="col-md-6"><strong>Zona:</strong> ${caso.zona}</div>
-        <div class="col-md-6"><strong>DNI:</strong> ${caso.dni}</div>
-        <div class="col-md-6"><strong>Tipo de Caso:</strong> ${
-          caso.tipo_caso
-        }</div>
-        <div class="col-md-6"><strong>Teléfono:</strong> ${
-          caso.telefono || "-"
-        }</div>
-        <div class="col-md-6"><strong>Estado:</strong> <span class="badge ${getBadgeClass(
-          caso.estado
-        )}">${caso.estado}</span></div>
-        <div class="col-12"><strong>Observaciones:</strong> ${
-          caso.observacion || '<em class="text-muted">Sin observaciones</em>'
-        }</div>
-        <div class="col-md-6"><strong>Fecha:</strong> ${new Date(
-          caso.fecha_creada
-        ).toLocaleString("es-AR", { timeZone: 'America/Argentina/Buenos_Aires', hour12: false })}</div>
-        <div class="col-md-6"><strong>Fecha Actualizada:</strong> ${
-          caso.fecha_actualizado
-            ? new Date(caso.fecha_actualizado).toLocaleString("es-AR", { timeZone: 'America/Argentina/Buenos_Aires', hour12: false })
-            : '<em class="text-muted">No actualizada</em>'
-        }</div>
-      </div>`;
-          document.getElementById("detallesCaso").innerHTML = html;
-          new bootstrap.Modal(document.getElementById("modalDetalles")).show();
-        } catch (err) {
-          alert("Error al cargar detalles");
-        }
-      }
-
-      function getBadgeClass(estado) {
-        if (estado === "Pendiente") return "bg-warning text-dark";
-        if (estado === "Resuelto") return "bg-success";
-        if (estado === "Cancelado") return "bg-danger";
-        return "bg-secondary";
-      }
-
-      async function editarCaso(casoId) {
-        try {
-          const res = await fetch(`/api/casos/${casoId}`);
-          if (!res.ok) throw new Error("Error");
-          const { caso, delitos, zonas } = await res.json();
-
-          document.getElementById("editCasoId").value = caso.id;
-          document.getElementById("editNombre").value = caso.nombre;
-          document.getElementById("editApellido").value = caso.apellido;
-          document.getElementById("editDNI").value = caso.dni;
-          document.getElementById("editTelefono").value = caso.telefono || "";
-          document.getElementById("editEstado").value =
-            caso.estado || "Pendiente";
-          document.getElementById("editObservaciones").value =
-            caso.observacion || "";
-
-          document.getElementById("editTipoCaso").innerHTML = delitos
-            .map(
-              (d) =>
-                `<option value="${d.id_delito}" ${
-                  d.id_delito === caso.id_delito ? "selected" : ""
-                }>${d.tipo_delito}</option>`
-            )
-            .join("");
-
-          document.getElementById("editZona").innerHTML = zonas
-            .map(
-              (z) =>
-                `<option value="${z.id_zona}" ${
-                  z.id_zona === caso.id_zona ? "selected" : ""
-                }>${z.nombre_zona}</option>`
-            )
-            .join("");
-
-          new bootstrap.Modal(document.getElementById("modalEditar")).show();
-        } catch (err) {
-          alert("Error al cargar caso");
-        }
-      }
-
-      document
-        .getElementById("formEditarCaso")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const id = document.getElementById("editCasoId").value;
-          const formData = {
-            nombre: document.getElementById("editNombre").value.trim(),
-            apellido: document.getElementById("editApellido").value.trim(),
-            dni: document.getElementById("editDNI").value.trim(),
-            telefono: document.getElementById("editTelefono").value.trim(),
-            tipo_caso: document.getElementById("editTipoCaso").value,
-            zona: document.getElementById("editZona").value,
-            estado: document.getElementById("editEstado").value,
-            observaciones: document
-              .getElementById("editObservaciones")
-              .value.trim(),
-          };
-
-          try {
-            const res = await fetch(`/api/casos/${id}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(formData),
-            });
-            if (res.ok) {
-              // SWEETALERT LINDO
-              // CERRAR MODAL
-               bootstrap.Modal.getInstance(document.getElementById("modalEditar")).hide();
-              await Swal.fire({
-                title: "¡Actualizado!",
-                text: "El caso se guardó correctamente",
-                icon: "success",
-                timer: 2000,
-                timerProgressBar: true,
-                showConfirmButton: false
-              });
-              location.reload();
-            } else {
-                const data = await res.json();
-               Swal.fire("Error", data.message || "No se pudo actualizar", "error");
-            }
-          } catch (err) {
-            Swal.fire("Error", "Error de conexión", "error");
-          }
-        });
-
-      async function eliminarCaso(casoId) {
-        const result = await Swal.fire({
-          title: "¿Eliminar caso?",
-          text: "Esta acción no se puede deshacer",
+      if (errores.length > 0) {
+        Swal.fire({
+          title: "Datos incorrectos",
+          html: `<ul class="text-start"><li>${errores.join("</li><li>")}</li></ul>`,
           icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          cancelButtonColor: "#3085d6",
-          confirmButtonText: "Sí, eliminar",
-          cancelButtonText: "Cancelar",
+          confirmButtonText: "Corregir"
         });
+        return;
+      }
 
-        if (result.isConfirmed) {
-          try {
-            const res = await fetch(`/api/casos/${casoId}`, {
-              method: "DELETE",
-              credentials: "include",
-            });
+      const formData = {
+        nombre,
+        apellido,
+        dni,
+        telefono,
+        tipo_caso,
+        zona,
+        estado,
+        observaciones,
+      };
 
-            if (res.ok) {
-              Swal.fire("Eliminado", "El caso fue borrado", "success").then(
-                () => {
-                  location.reload();
-                }
-              );
-            } else {
-              const data = await res.json();
-              Swal.fire(
-                "Error",
-                data.message || "No se pudo eliminar",
-                "error"
-              );
-            }
-          } catch (err) {
-            Swal.fire("Error", "Error de conexión", "error");
+      try {
+        const res = await fetch(`/api/casos/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+          credentials: "include"
+        });
+        if (res.ok) {
+          bootstrap.Modal.getInstance(document.getElementById("modalEditar")).hide();
+          await Swal.fire({
+            title: "¡Actualizado!",
+            text: "El caso se guardó correctamente",
+            icon: "success",
+            timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false
+          });
+          location.reload();
+        } else {
+          const data = await res.json();
+          Swal.fire("Error", data.message || "No se pudo actualizar", "error");
+        }
+      } catch (err) {
+        Swal.fire("Error", "No se pudo conectar", "error");
+      }
+    });
+
+    async function eliminarCaso(id) {
+      const result = await Swal.fire({
+        title: "¿Estás seguro?",
+        text: "No podrás revertir esto",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar"
+      });
+
+      if (result.isConfirmed) {
+        try {
+          const res = await fetch(`/api/casos/${id}`, {
+            method: "DELETE",
+            credentials: "include"
+          });
+          const data = await res.json();
+          if (data.success) {
+            await Swal.fire("Eliminado", "Caso movido a eliminados. Puede restaurarlo desde Configuración > Ver Eliminados.", "success");
+            location.reload();
+          } else {
+            Swal.fire("Error", data.message, "error");
           }
+        } catch (error) {
+          Swal.fire("Error", "No se pudo eliminar el caso", "error");
         }
       }
-    </script>
-  </body>
+    }
+  </script>
+</body>
+
 </html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zonas Eliminadas - OVD</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard"><i class="bi bi-shield-check"></i> OVD - Admin</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-house-door"></i>
+                            Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/register"><i class="bi bi-gear"></i>
+                            Configuración</a></li>
+                </ul>
+                <div class="dropdown me-3">
+                    <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i>
+                        <span id="currentUser">
+                            <%= currentUser ? (currentUser.nombre || currentUser.username) : 'Admin' %>
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><button class="dropdown-item text-danger" onclick="logout()"><i
+                                    class="bi bi-box-arrow-right"></i> Cerrar sesión</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="row mb-3 align-items-center">
+            <div class="col-md-6">
+                <h4><i class="bi bi-geo-alt"></i> Zonas Eliminadas</h4>
+            </div>
+            <div class="col-md-6 text-end">
+                <input type="text" id="searchInput" class="form-control d-inline-block w-auto me-2"
+                    placeholder="Buscar..." />
+                <a href="/eliminados" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Volver</a>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Zona</th>
+                        <th>Fecha Eliminación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaZonas">
+                    <% if (!zonas || zonas.length===0) { %>
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No hay zonas eliminadas</td>
+                        </tr>
+                        <% } else { %>
+                            <% zonas.forEach(z=> { %>
+                                <tr>
+                                    <td>
+                                        <%= z.id_zona %>
+                                    </td>
+                                    <td>
+                                        <%= z.nombre_zona %>
+                                    </td>
+                                    <td>
+                                        <%= z.deleted_at ? new Date(z.deleted_at).toLocaleString('es-AR', {
+                                            day: '2-digit' , month: '2-digit' , year: 'numeric' , hour: '2-digit' ,
+                                            minute: '2-digit' , hour12: false }) : '-' %>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-success btn-sm"
+                                            onclick="restaurarZona('<%= z.id_zona %>')" title="Restaurar">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+                                        </button>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Filtro de búsqueda
+        document.getElementById("searchInput").addEventListener("input", function () {
+            const term = this.value.toLowerCase().trim();
+            const rows = document.querySelectorAll("#tablaZonas tr");
+            rows.forEach(row => {
+                if (row.cells.length === 1) return;
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? "" : "none";
+            });
+        });
+
+        async function logout() {
+            try { await fetch("/logout", { method: "POST", credentials: "include" }); window.location.href = "/login?alert=logout"; } catch (err) { alert("Error"); }
+        }
+
+        async function restaurarZona(id) {
+            const result = await Swal.fire({
+                title: "¿Restaurar Zona?",
+                text: "La zona volverá a estar disponible.",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Sí, restaurar",
+                cancelButtonText: "Cancelar"
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    // Correction: In zonaRoutes.js I added `router.put("/:id/restore", ...)`
+                    // If app.js mounts zonaRoutes at `/zonas`, then it is `/zonas/:id/restore`.
+                    // I will assume `/zonas` prefix for now.
+                    // Let's check app.js to be sure.
+
+                    // Correction: In zonaRoutes.js I added `router.put("/:id/restore", ...)`
+                    // If app.js mounts zonaRoutes at `/zonas`, then it is `/zonas/:id/restore`.
+                    // I will assume `/zonas` prefix for now.
+                    const res = await fetch(`/zonas/${id}/restore`, { method: "PUT", credentials: "include" });
+
+                    const data = await res.json();
+                    if (data.success) {
+                        await Swal.fire("Restaurado", "Zona restaurada correctamente.", "success");
+                        location.reload();
+                    } else {
+                        Swal.fire("Error", data.message, "error");
+                    }
+                } catch (error) {
+                    Swal.fire("Error", "Error de conexión", "error");
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

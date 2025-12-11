@@ -1,49 +1,54 @@
-import pool from "../config/db.js";
+import * as ZonaModel from "../models/zonaModel.js";
 
-// 🔹 Controlador para listar todas las zonas (por si necesitás renderizar en EJS)
+/**
+ * Lista todas las zonas, opcionalmente filtrando por nombre.
+ * @param {Object} req - Request.
+ * @param {Object} res - Response.
+ */
 export const listarZonas = async (req, res) => {
   try {
-    const { search = '' } = req.query; // ← NUEVO: Soporte para búsqueda opcional
-    let query = "SELECT * FROM zona WHERE 1=1";
-    let params = [];
+    const { search = '' } = req.query;
+    // La búsqueda por nombre no está implementada en el modelo básico,
+    // pero podemos filtrar en memoria o agregar método al modelo.
+    // Por simplicidad y dado que son pocas zonas, filtramos en memoria si hay search.
+
+    let zonas = await ZonaModel.getZonas();
+
     if (search.trim()) {
-      query += " AND nombre_zona LIKE ?";
-      params = [`%${search.trim()}%`];
+      const term = search.trim().toLowerCase();
+      zonas = zonas.filter(z => z.nombre_zona.toLowerCase().includes(term));
     }
-    query += " ORDER BY nombre_zona ASC";
-    const [zonas] = await pool.query(query, params);
-    res.json({ success: true, zonas });  // ← CAMBIO: Envío { success, zonas } para consistencia con frontend
+
+    res.json({ success: true, zonas });
   } catch (error) {
     console.error("Error al listar zonas:", error);
     res.status(500).json({ success: false, message: "Error al obtener zonas" });
   }
 };
 
-// 🔹 Controlador para agregar una nueva zona (usado por el modal)
+/**
+ * Agrega una nueva zona.
+ * @param {Object} req - Request.
+ * @param {Object} res - Response.
+ */
 export const agregarZona = async (req, res) => {
   try {
     const { nombreZona } = req.body;
-    // Validación simple
     if (!nombreZona || nombreZona.trim() === "") {
       return res.status(400).json({ success: false, message: "El nombre de la zona es obligatorio." });
     }
 
-    // Verificar si ya existe una zona con ese nombre
-    const [existing] = await pool.query("SELECT * FROM zona WHERE nombre_zona = ?", [nombreZona.trim()]);
-    if (existing.length > 0) {
+    const existing = await ZonaModel.getZonaByName(nombreZona.trim());
+    if (existing) {
       return res.status(400).json({ success: false, message: "Ya existe una zona con ese nombre." });
     }
 
-    // Insertar en la base de datos
-    const [result] = await pool.query(
-      "INSERT INTO zona (nombre_zona) VALUES (?)",  // ← CAMBIO: Asegurar que el campo sea 'nombre_zona' (ajusta si es 'nombre')
-      [nombreZona.trim()]
-    );
-    // Responder al frontend con los datos del nuevo registro
+    const id = await ZonaModel.createZona(nombreZona.trim());
+
     res.json({
       success: true,
       message: "Zona agregada correctamente.",
-      id: result.insertId,
+      id: id,
       nombreZona: nombreZona.trim()
     });
   } catch (error) {
@@ -52,7 +57,11 @@ export const agregarZona = async (req, res) => {
   }
 };
 
-// ← NUEVO: Controlador para editar una zona
+/**
+ * Edita una zona existente.
+ * @param {Object} req - Request.
+ * @param {Object} res - Response.
+ */
 export const editarZona = async (req, res) => {
   const { id } = req.params;
   const { nombreZona } = req.body;
@@ -60,18 +69,18 @@ export const editarZona = async (req, res) => {
     if (!nombreZona || nombreZona.trim() === "") {
       return res.status(400).json({ success: false, message: "El nombre de la zona es obligatorio." });
     }
-    const [existing] = await pool.query("SELECT * FROM zona WHERE id_zona = ?", [id]);
-    if (existing.length === 0) {
+
+    const existing = await ZonaModel.getZonaById(id);
+    if (!existing) {
       return res.status(404).json({ success: false, message: "Zona no encontrada" });
     }
 
-    // Verificar si ya existe OTRA zona con ese nombre
-    const [duplicate] = await pool.query("SELECT * FROM zona WHERE nombre_zona = ? AND id_zona != ?", [nombreZona.trim(), id]);
-    if (duplicate.length > 0) {
+    const duplicate = await ZonaModel.getZonaByName(nombreZona.trim());
+    if (duplicate && duplicate.id_zona != id) {
       return res.status(400).json({ success: false, message: "Ya existe una zona con ese nombre." });
     }
 
-    await pool.query("UPDATE zona SET nombre_zona = ? WHERE id_zona = ?", [nombreZona.trim(), id]);
+    await ZonaModel.updateZona(id, nombreZona.trim());
     res.json({ success: true, message: "Zona actualizada correctamente" });
   } catch (error) {
     console.error("Error al editar zona:", error);
@@ -79,18 +88,38 @@ export const editarZona = async (req, res) => {
   }
 };
 
-// ← NUEVO: Controlador para borrar una zona
+/**
+ * Borra una zona.
+ * @param {Object} req - Request.
+ * @param {Object} res - Response.
+ */
 export const borrarZona = async (req, res) => {
   const { id } = req.params;
   try {
-    const [existing] = await pool.query("SELECT * FROM zona WHERE id_zona = ?", [id]);
-    if (existing.length === 0) {
+    const existing = await ZonaModel.getZonaById(id);
+    if (!existing) {
       return res.status(404).json({ success: false, message: "Zona no encontrada" });
     }
-    await pool.query("DELETE FROM zona WHERE id_zona = ?", [id]);
+
+    await ZonaModel.deleteZona(id);
     res.json({ success: true, message: "Zona borrada correctamente" });
   } catch (error) {
-    console.error("Error al borrar zona:", error);
-    res.status(500).json({ success: false, message: "Error al borrar zona,esta asignada a un Caso" });
+    console.error("Error en deleteZona:", error);
+    res.status(500).json({ success: false, message: "Error al borrar" });
+  }
+};
+
+// === API: Restaurar Zona (Solo Admin) ===
+export const restaurarZona = async (req, res) => {
+  const { id } = req.params;
+  try {
+    if (!req.user || Number(req.user.rol) !== 1) {
+      return res.status(403).json({ success: false, message: "Acceso denegado" });
+    }
+    await ZonaModel.restoreZona(id);
+    res.json({ success: true, message: "Zona restaurada" });
+  } catch (error) {
+    console.error("Error en restaurarZona:", error);
+    res.status(500).json({ success: false, message: "Error al restaurar" });
   }
 };
