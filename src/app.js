@@ -21,6 +21,8 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "ejs");
 // ====== MIDDLEWARES ======
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
@@ -32,10 +34,6 @@ app.use(session({
   saveUninitialized: false,
   cookie: { maxAge: 60000 }
 }));
-
-// ====== CONFIGURAR VISTAS (LA PARTE IMPORTANTE) ======
-app.set("views", path.join(__dirname, "views"));  // <--- CORRECTO
-app.set("view engine", "ejs");
 
 // ====== ARCHIVOS ESTÁTICOS ======
 app.use(express.static(path.join(__dirname, "public")));
