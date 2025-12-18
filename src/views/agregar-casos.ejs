@@ -456,8 +456,16 @@
           id_zona: zonaSelect.value,
           id_usuario: usuarioAsignadoSelect.value || null,
           id_delito: tipoCasoSelect.value,
-          fecha_creacion: fechaCreacionInput.value,
-          fecha_actualizacion: fechaActualizacionInput.value,
+          id_delito: tipoCasoSelect.value,
+          fecha_creacion: (() => {
+            const dateVal = fechaCreacionInput.value;
+            if (!dateVal) return new Date().toISOString();
+            // Append current time to selected date
+            const now = new Date();
+            const timeString = now.toTimeString().split(' ')[0]; // HH:mm:ss
+            return `${dateVal}T${timeString}`;
+          })(),
+          fecha_actualizacion: new Date().toISOString(),
         };
 
         // Validación específica
@@ -558,11 +566,15 @@
               usuarioAsignadoSelect.appendChild(option);
             });
 
-            // Fechas
-            const today = new Date().toISOString().split("T")[0];
-            fechaCreacionInput.value = today;
-            fechaCreacionInput.max = today;
-            fechaActualizacionInput.value = today;
+            // Fechas initialization
+            const now = new Date();
+            // Local date YYYY-MM-DD
+            const offset = now.getTimezoneOffset() * 60000;
+            const localDate = new Date(now.getTime() - offset).toISOString().split("T")[0];
+
+            fechaCreacionInput.value = localDate;
+            fechaCreacionInput.max = localDate;
+            fechaActualizacionInput.value = localDate;
           } else {
             alert("Error al cargar datos: " + result.message);
           }
