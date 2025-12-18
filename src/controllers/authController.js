@@ -104,26 +104,27 @@ const authController = {
    */
   login: async (req, res) => {
     try {
-      const { name, password } = req.body;
+      const { name, password, login_source } = req.body;
+
+      const redirectUrl = login_source === 'admin' ? '/admin' : '/login';
 
       if (!name || !password) {
-        return res.redirect("/login?alert=empty");
+        return res.redirect(`${redirectUrl}?alert=empty`);
       }
 
       const user = await UsuarioModel.getUserByUsername(name);
 
       if (!user) {
-        return res.redirect("/login?alert=credentials");
+        return res.redirect(`${redirectUrl}?alert=credentials`);
       }
 
       const match = await bcrypt.compare(password, user.password);
 
       if (!match) {
-        return res.redirect("/login?alert=credentials");
+        return res.redirect(`${redirectUrl}?alert=credentials`);
       }
 
       // Validar origen del login
-      const { login_source } = req.body;
       const isAdmin = user.id_rol === 1;
 
       // Si intenta entrar por /admin (login_source='admin') y NO es admin -> Error
